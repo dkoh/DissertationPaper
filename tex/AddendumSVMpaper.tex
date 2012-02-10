@@ -1,0 +1,73 @@
+\section{Addendum to the Generalized Asymmetric SVM: A comparison with regular SVM}
+
+\subsection{Comparison of Regular SVM to a Generalized Asymmetric SVM}
+The proposed asymmetric SVM is valuable in problems where precision is required or when there is an uneven dataset. The difference between managing the problem endogenously versus tackling the problem exogenously is that an endogenous modification is expected to have non-linear optimizations that is taken into account by the QP that cannot be reproduced exogenously. The following results compare the performance of the regular hinge loss of an SVM and the proposed asymmetric loss function. With the hinge loss, the classification of a positive and negative class is based on whether the results of the SVM function (equation \ref{intel:regularsvm}) is greater of lesser than a value $\pi$ (typically $\pi=0$). Creating quantile loss exogenously, it is possible to favor one class over the other by just varying the value of $\pi$. 
+
+	\begin{equation}\label{intel:regularsvm}
+	f(x)=\left\{ 
+		\begin{array}{l l}
+		  1 & \quad \mbox{if $\mathbf{w}'\mathbf{x}_i+b \geq \pi$}\\
+		  -1 & \quad \mbox{if $\mathbf{w}'\mathbf{x}_i+b < \pi$}\\ \end{array} \right.
+	\end{equation}
+	Constructing a continuous ROC curve with the regular SVM is easy. Using the out-sample test dataset, the value of $\pi$ is starts at a high level where all test data are classified as negative and is lowered until all the test data are classified as positive. Getting a continuous curve for the proposed loss function, on the other hand, is a little more tricky as each iteration would require the QP to be resolved. Figure \ref{Fig:General Loss Intel} shows the proposed asymmetric loss function. While it would be computationally intensive to plot out the curve of the proposed loss function, various values of $\rho$ and $\epsilon$ can be used to find points of on the ROC curve. With these points we can see if the proposed loss function actually performs better than that of the regular SVM by observing whether these points lie above or below the regular SVM curve. 
+
+	\subsection{Precision Comparison Methodology}\label{sec:precisecompare}
+	A simulated dataset with a uniform random variable $x$ is constructed based on equation \ref{intel:simufunction}
+	\begin{equation}\label{intel:simufunction}
+	f(x)=sign( 0.95*cos(0.5*(exp(x)-1)))
+	\end{equation}
+	A training and test set of data is sampled and the machines are built on the training set and then tested on the test set. The SVM penalizing parameter $C$ and the kernel parameter $\gamma$ are each set to 3 different levels and all interaction of these levels are ran. The kernel used for this experiment is the gaussian kernel. The ROC curve is plotted exactly for the regular SVM based on the out-sample points. The proposed loss function is modified by changing either the values of $\rho$ or $\epsilon$ to get points on the ROC curve. Figure \ref{fig:rhoconstraintsprecision} shows the results by varying the values of $\rho$ to get different points on the graph. Figure \ref{fig:epsilonconstraintsprecision} shows the results by varying the values of $\epsilon$ to get different points on the graph. 
+	\begin{figure}
+	 \centering
+	\includegraphics[width=3.4in]{img/intelGraphs/Generalloss}\\
+	 \caption{The figure shows the penalty resulted from the error $y-f(x)$. The parameters changes either the length or slope of the lines they are closest to. $\epsilon_1$ and $\epsilon_2$ changes the length of the lines and $\rho_1$ and $\rho_2$ changes the magnitude of the slopes.}
+	 \label{Fig:General Loss Intel}
+	\end{figure} 
+
+
+	\begin{figure}[htp]
+	  \begin{center}
+	    \subfigure[C=1 and $\gamma$=1]{\label{Fig:C1K1}\includegraphics[scale=0.25]{img/intelGraphs/C1K1}}
+		\subfigure[C=1 and $\gamma$=5]{\label{Fig:C1K5}\includegraphics[scale=0.25]{img/intelGraphs/C1K5}}
+		\subfigure[C=1 and $\gamma$=10]{\label{Fig:C1K10}\includegraphics[scale=0.25]{img/intelGraphs/C1K10}}\\
+		\subfigure[C=100 and $\gamma$=1]{\label{Fig:C100K1}\includegraphics[scale=0.25]{img/intelGraphs/C100K1}}
+		\subfigure[C=100 and $\gamma$=5]{\label{Fig:C100K5}\includegraphics[scale=0.25]{img/intelGraphs/C100K5}}
+		\subfigure[C=100 and $\gamma$=10]{\label{Fig:C100K10}\includegraphics[scale=0.25]{img/intelGraphs/C100K10}}\\
+		\subfigure[C=200 and $\gamma$=1]{\label{Fig:C200K1}\includegraphics[scale=0.25]{img/intelGraphs/C200K1}}
+		\subfigure[C=200 and $\gamma$=5]{\label{Fig:C200K5}\includegraphics[scale=0.25]{img/intelGraphs/C200K5}}
+		\subfigure[C=200 and $\gamma$=10]{\label{Fig:C200K10}\includegraphics[scale=0.25]{img/intelGraphs/C200K10}}
+	  \end{center}
+	  \caption{The ROC curves above show the performance of a regular SVM and an proposed loss function for varying values of C and $\gamma$. The line represents that of the regular SVM and the * are points of the proposed loss function with different values for $\rho$. Except for Figure \ref{Fig:C1K10}, the points of the proposed loss function generally are on top of the regular SVM}
+	  \label{fig:rhoconstraintsprecision}
+	\end{figure}
+
+	\begin{figure}[htp]
+	  \begin{center}
+	    \subfigure[C=1 and $\gamma$=1]{\label{Fig:etubeC1K1}\includegraphics[scale=0.25]{img/intelGraphs/etubeC1K1}}
+		\subfigure[C=1 and $\gamma$=5]{\label{Fig:etubeC1K5}\includegraphics[scale=0.25]{img/intelGraphs/etubeC1K5}}
+		\subfigure[C=1 and $\gamma$=10]{\label{Fig:etubeC1K10}\includegraphics[scale=0.25]{img/intelGraphs/etubeC1K10}}\\
+		\subfigure[C=100 and $\gamma$=1]{\label{Fig:etubeC100K1}\includegraphics[scale=0.25]{img/intelGraphs/etubeC100K1}}
+		\subfigure[C=100 and $\gamma$=5]{\label{Fig:etubeC100K5}\includegraphics[scale=0.25]{img/intelGraphs/etubeC100K5}}
+		\subfigure[C=100 and $\gamma$=10]{\label{Fig:etubeC100K10}\includegraphics[scale=0.25]{img/intelGraphs/etubeC100K10}}\\
+		\subfigure[C=200 and $\gamma$=1]{\label{Fig:etubeC200K1}\includegraphics[scale=0.25]{img/intelGraphs/etubeC200K1}}
+		\subfigure[C=200 and $\gamma$=5]{\label{Fig:etubeC200K5}\includegraphics[scale=0.25]{img/intelGraphs/etubeC200K5}}
+		\subfigure[C=200 and $\gamma$=10]{\label{Fig:etubeC200K10}\includegraphics[scale=0.25]{img/intelGraphs/etubeC200K10}}
+	  \end{center}
+	  \caption{The ROC curves above show the performance of a regular SVM and an proposed loss function for varying values of C and $\gamma$. The line represents that of the regular SVM and the * are points of the proposed loss function with different values for $\epsilon$. The points of the proposed loss function generally at least that of the regular SVM}
+	  \label{fig:epsilonconstraintsprecision}
+	\end{figure}
+
+	\subsection{Uneven dataset Comparison Methodology}
+	The same simulated data based on equation \ref{intel:simufunction} is used to test the ability for both machines to be robust when training on uneven datasets. However, in this exercise, the in-sample dataset was sampled to produce a subset of in-sample data where only 13\% of the observations had a class of -1. Both methods were then trained on this set of subset data and tested on the same test data used in section \ref{sec:precisecompare}.
+
+
+
+	\begin{figure}[htp]
+	  \begin{center}
+	    \subfigure[C=1 and $\gamma$=10]{\label{Fig:unevenC1K10}\includegraphics[scale=0.25]{img/intelGraphs/unevenC1K10}}
+		\subfigure[C=100 and $\gamma$=10]{\label{Fig:unevenC100K10}\includegraphics[scale=0.25]{img/intelGraphs/unevenC100K10}}
+		\subfigure[C=200 and $\gamma$=10]{\label{Fig:unevenC200K10}\includegraphics[scale=0.25]{img/intelGraphs/unevenC200K10}}
+	  \end{center}
+	  \caption{The ROC curves above show the performance of a regular SVM and an proposed loss function for varying values of C and $\gamma$ based on an uneven dataset where the negative class only represented 13\% of the training data. The line represents that of the regular SVM and the * are points of the proposed loss function with different values for $\rho$.}
+	  \label{fig:unevendataset}
+	\end{figure}

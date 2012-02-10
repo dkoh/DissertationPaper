@@ -1,0 +1,50 @@
+\documentclass[12pt]{report}
+% Default margins are too wide all the way around. I reset them here
+\setlength{\topmargin}{0in}
+\setlength{\oddsidemargin}{.125in}
+\setlength{\textwidth}{6.25in}
+\linespread{1.5}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{rotating}
+\usepackage{verbatim}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage{subfigure}
+\usepackage[ruled,vlined]{algorithm2e}	
+\usepackage{exscale,relsize}
+\usepackage{wasysym}
+\usepackage{amsfonts,amssymb, txfonts}
+
+% \title{Ph.D. Dissertation Proposal\\\textbf{TITLE}}
+\title{\textbf{Ph.D. Dissertation Proposal}}
+\author{\emph{Derek Koh}\\School of Computing, Informatics, and Decision Systems Engineering\\Arizona State University\\Chair: George C. Runger\\Committee Members: Teresa Wu, Rong Pan, Scott Menor\\}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+%\input{abstract}      
+\tableofcontents       
+%\listoftables         
+%\listoffigures        
+                       
+%body
+%\input{tex/introduction}
+%\chapter{Background And Literature Review}\label{chapter:Background}
+%\input{tex/Background}
+%\chapter{Asymmetric SVM Paper}\label{chapter:SVMpaper}
+\input{tex/AsymSVMpaper}
+%\input{tex/AddendumSVMpaper}
+%\input{tex/AsymRFpaper}
+%\input{tex/RFStratum}
+
+%bib
+\bibliography{bibliography}
+\bibliographystyle{apalike}
+
+\appendix       
+\end{document}  

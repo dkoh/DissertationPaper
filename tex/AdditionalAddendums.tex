@@ -1,0 +1,63 @@
+\documentclass[12pt]{report}
+% Default margins are too wide all the way around. I reset them here
+\setlength{\topmargin}{0in}
+\setlength{\oddsidemargin}{.125in}
+\setlength{\textwidth}{6.25in}
+\linespread{1.5}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{rotating}
+\usepackage{verbatim}
+\usepackage{url}
+\usepackage{natbib}
+\usepackage{setspace}
+\usepackage{subfigure}
+\usepackage[ruled,vlined]{algorithm2e}	
+\usepackage{exscale,relsize}
+\usepackage{wasysym}
+\usepackage{amsfonts,amssymb, txfonts}
+
+\begin{document}
+
+\section{Revised Asymmetric Random Forest Variable Selection}
+I am proposing 2 changes to the existing model. The initial construct of the variable selection used the following gini index
+
+\begin{equation}\label{eqn:asymmetricginiindex}
+	G(m)=\min(1-p_{left}^2-(1-p_{left})^2, 1-p_{left})
+\end{equation}
+
+The Gini here considers the purity for both classes. As we are only concern with one of the classes, I am proposing just penalizing the impurity for the class of interest. 
+
+
+\begin{equation}\label{Eq:asymmetricginiindex2}
+G(m)=
+\begin{cases} 1-p_{left}^2-(1-p_{left})^2 & \text{if majority class in node is positive}
+\\ G(m_{parent})&\text{if majority class is negative}
+\end{cases}
+\end{equation}
+
+With the above equation, only when node has a majority of positive class does the GINI get calculated. Otherwise, the GINI will be set to the GINI of the node's parent.
+
+Next, we have to adjust the method of measuring purity. Remember the split that produces the max purity will be chosen. Currently we are adopting the following
+
+\[
+	\textbf{Purity}=G(m_{parent})-pG(m_{left})-(1-p)G(m_{right})
+\]
+\[
+	\textbf{where: } p = |m_{left}|/|m_{parent}|
+\]
+
+The distribution of $p$ is linear. A child node may have a pure class but because it only represents a small percentage of $|m|$, the resulting purity may not be significant. Thus there is a purity to node size trade-off. Because we are more interested in purity than the size of the node, we would like to put less weight on the node size. Thus we propose the following
+
+\[
+	\textbf{Purity}=G(m_{parent})-pG(m_{left})-(1-p)G(m_{right})\\
+\]
+\[
+\textbf{where: } p = \frac{log(|m_{left}|/|m_{parent}|)}{log(|m_{left}|/|m_{parent}|) +log(|m_{right}|/|m_{parent}|)}
+\]
+The formulation reduces the penalization for a small number of observations in the child node relative to its parent.
+
+Running such a formulation has yield success in terms of finding pertinent variables based on simulated data. In addition, it has also been effective in finding asummetric effects when there is interaction.
+
+\end{document}  

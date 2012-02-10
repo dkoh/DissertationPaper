@@ -1,0 +1,137 @@
+
+\chapter{Asymmetric Random Forest for Variable Selection}\label{chapter:AsymRFpaper}
+\section{Introduction}
+In Chapter \ref{chapter:SVMpaper}, an asymmetric loss function was proposed and applied on SVM. Some attempts were made to create ensembles out of this SVM to improve accuracy. The focus for this chapter is on picking the variables that are relevant for asymmetric prediction. The benefits for asymmetric learners as oppose to symmetric learners have been heavily made in Chapter \ref{chapter:SVMpaper}. It is only natural to explore a better way of variable selection such that the right variables are used in the classifier to produce high accuracy for the class of interest. Trees traditionally take the mode or average value of the leaf node to classify an observation that falls into that leaf. Such central tendency predictions are not robust to asymmetric predictions because they fail to account for the risk of misclassification of one side of a binary class. Tree based algorithms can be modified, like the SVM, such that it will be able to make asymmetric predictions. Similarly, the generic random forest algorithm, which has a symmetric loss function, can be modified to allow for asymmetry.
+
+\section{Loss functions in trees}
+For this research, we will be focusing on modifying the random forest algorithm by \citet{Breiman01}. But before we talk about how the random forest algorithm works, it is worth while to discuss the precursor to the random forest algorithm. We will be looking specifically at the CART algorithm by \citet{Breiman84}. In general, the algorithm by \citet{Breiman84} proposed divides the predictor space by recursively splitting the data. Each splitting rule splits the space into two separate regions $R_i$ and $R_j$, $i \neq j$. Each region $R_m,m \in M$ is called a node. Each rule forms a decision boundary, and a leaf node is the final partition after all the rules are enforced. The classification of data is done at the leaf node by the following loss function for a regression tree
+
+\begin{equation}
+	\begin{array}{rcl}
+		\min_{\gamma_j} \sum_{i=1}^N L(y_i,\gamma_j) & = &  \min_{\gamma_j} \sum_{i=1}^N (y-\gamma_j)^2 \\
+	\mbox{where }	\gamma_j &\in & \mathbb{R}	
+	\end{array}
+\end{equation}
+
+and 
+\begin{equation}
+	\begin{array}{rcl}
+		 \min_{\gamma_j} \sum_{i=1}^N L(y_i,\gamma_j) & = &  \min_{\gamma_j} \sum_{i=1}^N |y-\gamma_j| \\
+	\mbox{where }	\gamma_j &\in & Y
+	\end{array}
+\end{equation}
+
+ 
+for a classification tree\footnote{Dr Runger: please note that the functions shown apply only to the leaf node and is not used for constructing the tree}. It can be shown that the value of $\gamma$ is $E_{x_i \in R_j}[y]$ for a regression tree and $\arg\max_{y\in Y} y$ for a classification tree. The rules for creating the partitions of the feature space is done in the following fashion. For all observations that fall into region $R_m$, an optimal split is found by finding that split that results in the greatest purity. The purity is calculated with a purity function which in the case of CART is the Gini index. Let $k \in K$ be a class of the dependant variable and $p_{mk}$ be the probability of class $k$ in node $R_m$, then the Gini is as follows.
+
+\begin{equation}
+	G(m)= 1-\displaystyle\sum_k p_{mk}
+\end{equation}
+
+Every possible split within the region $R_m$ is considered in finding the optimal split. Splitting of regions continue until no split that increases purity can be made. Finding optimal regions in this fashion often results in a local optimum as the splitting decision is greedy. Thus a way to manage this problem is by using more than one tree and aggregating the prediction of all the trees. A method that does just that is the random forest algorithm
+
+\section{Random Forest}
+Random forest was created by \citet{Breiman01}. The method grows $N-$number of trees and takes the vote of all the trees grown to make a prediction. The trees are grown with the use of the CART algorithm with one exception: A random subset of the total number of variables instead of all the variables is searched on to find the greatest change in purity. The selection process of using a random subset of the total number of variables is used in calculating the Gini index mediates the problem of obtaining a local minimum that the CART algorithm suffers from. The below algorithm shows how a random forest is constructed
+
+\begin{algorithm}
+Let the number of training cases be $N$, and the number of variables in the classifier be $M$.
+
+\For{each tree}{
+Obtain a bootstrap sample of the training data of size N.\\
+Pick m variables at random from M for use to determine the best split at each node of the tree.
+}
+Make a prediction by letting each tree classify an observation and then take the majority vote as the prediction.
+\caption{Random Forest Algorithm}\label{algo: RandomForest}
+\end{algorithm}
+
+\subsection{Random Forest for variable selection}
+\citet{Breiman01} showed that there are two ways the random forest algorithm can be modified to be used for variable selection. The first way is by random permutation. For each tree grown in the forest, classify the out-of-bag (OOB) observations and take the accuracy of the results. Then, for each predictor $x$, permute the variable values and reclassify the OOB observations. Compare the results to the initial accuracy. The most important variables are the ones that result in the greatest drop in accuracy
+
+When a predictor is split on the Gini index, the change in impurity, also called the purity, is calculated as follows. 
+
+\begin{equation}
+	\textbf{Purity}=G(m)-G(m')-G(m'')
+\end{equation}
+
+$m'$ and $m''$ are the left and right split of the region $R_m$.
+
+The second method for variable selection uses this purity to get the most relevant variables. For each of the $x_i$, The overall purity is calculated by summing the purity gained from each split that was split by $x_i$. The most important variable are then the ones with the greatest purity. For the work done in this paper, we will focus on variable importance using the Gini purity method. 	
+
+\section{Asymmetric Variable Selection}
+For binary classifying problems, variable selection such as the random forest variable selection methods will select variables that are apt at predicting both the positive and negative class. No consideration is given to the possibility that certain variables are better at predicting one side than the other. For instance, \cite{Bettis05} showed that exercising of employee stock options early is a sign for poor company performance but late exercise does not indicate superior performance. Thus earliness of option exercise cannot be used to predict if a firm will out-perform but earliness of exercise can be used to predict underperformance. If we are only interested in the results on one side, it would be better to have a variable selection algorithm that selects variables that are predictive on that side. 
+
+For a binary problem, the Gini index is as follows
+\begin{equation}\label{eqn:giniindex}
+	G(m)=1-p_{m1}^2-(1-p_{m1})^2
+\end{equation}
+
+We propose a change to the Gini index as follows such that asymmetric classification can be made.
+
+\begin{equation}\label{eqn:asymmetricginiindex}
+	G(m)=\min(1-p_{m1}^2-(1-p_{m1})^2, 1-p_{m1})
+\end{equation}
+
+Figure \ref{Fig:Quantile Regression} shows the graph of both the regular Gini and the asymmetric Gini for a binary response variable.
+
+\begin{figure}
+ \centering
+\includegraphics[width=3.4in]{img/asymRFimages/AsymmetricGini}\\
+ \caption{Impurity for different values of p.}
+ \label{Fig:Quantile Regression}
+\end{figure}
+
+ With an asymmetric purity function, we will then be able to grow trees that have leafs with higher purity for the positive class. We will then be able to explore the usefulness of variables for predicting a particular class by summing up the change in purity for each variable in all nodes in the forest. The most important variables for predicting the positive class will then be the ones with the greatest purity.
+
+\section{Research Plan}
+As asymmetric variable selection is sparsely documented in the data mining literature, we plan to engineer algorithms that are predictive in the class of interest. We plan to further explore how we can modify the random forest to provide for better outcomes in asymmetric variable selection. The modification of a random forest is currently in progress so that we can gain an asymmetric method that can be used for experiements. Simulated datasets that has variables that are predictive in both direction, predictive in only 1 direction, and not predictive at all will be used as tests to see if the modification works. After which, practical data will be used to test if the method is useful in real applications. The modified random forest will be tested against options exercise and sell data which is known to be asymmetric in nature and an evaluation of the results against other common methodologies such as those listed in \citet{Berk2011} will be done.
+
+
+% Old Stuff
+
+%  One can change the leaf node classification to minimize an asymmetric loss function such that for a regression tree
+
+% \begin{equation}
+% \begin{array}{rcl}
+% 	 \min_{\gamma_j} \sum_{i=1}^N L(y_i,\gamma_j) & = &  \min_{\gamma_j} \sum_{i=1}^N  \max(\alpha(y-\gamma_j),0) + \max(-(\alpha-1)(y+\gamma_j),0)\\
+% 	\mbox{where } \gamma_j &\in & \mathbb{R}
+	
+% \end{array}
+% \end{equation}
+
+% and 
+% \begin{equation}
+% 	\begin{array}{rcl}
+% 		\min_{\gamma_j} \sum_{i=1}^N L(y_i,\gamma_j) & = &  \min_{\gamma_j} \sum_{i=1}^N \max(\alpha(y-\gamma_j),0) + \max(-(\alpha-1)(y+\gamma_j),0) \\
+% 	\mbox{where }	\gamma_j &\in & Y
+% 	\end{array}	
+% \end{equation}
+
+
+
+% for a classification tree. The minimization of both functions will result in the $\alpha$-percentile of leaf node $R_j$. The above example shows the feasibility of changing the loss function to various novel asymmetric loss functions to produce an asymmetric CART algorithm. Research is currently ongoing in applying in changing the leaf node loss function in the CART code and also exploring the use of different loss functions that induces asymmetry in the training of CART.
+
+% \section {boosted tree algorithm}
+% The second part of this chapter will deal with the adjustment of the boosted tree algorithm. Gradient boosting has been well studied in the literature and because of the ease in modifying the loss function of the algorithm, it has been often modified by practitioners \citep{Ridgeway07}. The below is the basis of the algorithm for a boosted tree.
+% \begin{algorithm}
+% Initialize $f_o(x)=arg min_\gamma \sum_{i=1}^N L(y_i,\gamma)$ \;
+% \For{$m = 1$ \KwTo $M$}{
+%  Calculate $r_{im}=-[\frac{\partial L(y_i,f(x_i))}{\partial f(x_i)}]_{f=f_{m-1}}$ \;
+%  Fit a regression tree to the targets $r_{im}$ giving terminal regions $R_{jm}, j=1,2,...,J_m$\;
+% 	\For{$j = 1$ \KwTo $J_m$}{
+% 		Find $\gamma_{jm}=\arg\min_{\gamma}\displaystyle\sum_{x_i\in R_{jm}} L(y_i,f_{m-1}(x_i)+\gamma)$\;	
+% 	}
+%  	Update $f_m(x) = f_{m-1}(x) + \sum_{j=1}^{J_m}\gamma_{jm}I(x \in R_{jm})$ \;
+% }
+% \caption{Gradient boosted tree algorithm. \citet{Hastie01}}\label{algo_boostedtree}
+% \end{algorithm}
+
+% As software packages such as R has the ability to change the loss function of the gradient boosted tree with ease, work is currently being done to modify the loss function of the boosted tree to various asymmetric loss functions. The performance of asymmetric gradient boosting will be tested in combination with a symmetric CART and an asymmetric CART. 
+% \section{Research Plan}
+% For this research, the loss functions of the CART algorithm and the boosted tree algorithm is modified to the following 3 different loss functions. 
+% \begin{itemize}
+% 	\item The proposed loss function in Chapter \ref{chapter:SVMpaper}
+% 	\item An extension of the proposed loss function in Chapter \ref{chapter:SVMpaper} that includes the properties of huber loss \citep{Huber64}
+% 	\item LINEX Loss
+% \end{itemize}
+
+% The results will be compared between each other and the regular symmetric conjugates of the methods. A theoretical dataset and real-life datasets from the UCI repository will be used to test the models. Finally a write up will be done to discuss the differences in performance in the different asymmetric loss functions. 

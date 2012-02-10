@@ -1,0 +1,64 @@
+\chapter{Random Forest with Non-linear Stratified Data}\label{chapter:RFStratum}
+\section{Introduction}
+Grouping of data is commonly done in statistics to analyze similar data together. The clustering of such data can reduce variance in statistical estimation and provide a better understanding of the data. For instance in the finance field it is well known that companies should be grouped into its respective peer group such that better analysis can be conducted \citep{Daniel97} \citep{Faulkender10}\citep{Bizjak08}\citep{Marsili02}. The most rudimentary type of clustering is that of a 1:1 matched data. A 1:1 matching study is commonly called a case-control study where one of the matched data is labeled as the case and the other is labeled as control. 
+Matched data is commonly used in clinical studies \citep{Berg10}\citep{Austin08}. For instance, data of patients will be collected before and after a drug is administered for analysis to test the effectiveness of the drug. For such experiments, we study whether the covariates have an effect on differentiating the case and control and therefore care must be taken to compute statistics in a way that accounts for the matching of individual patients' data.
+
+With matched studies it may also be necessary to use blocking if there is domain knowledge of such variables contributing to noise. For instance, in a clinical trial, blocking by age and gender may be appropriate to reduce variability \citep{Crespo11}. Similar to blocking, stratifying of observations can be used to reduce variability. The difference between blocking and stratification is minimal in that blocking is used in experiments whereas stratification is used when sampling. In \citet{Hosmer00}, such problems of stratified matched data was handled by using conditional logistic regression.
+
+\section{Conditional Logistic Regression}\label{sec:clr}
+For the problem with binary response, the response is considered a Bernoulli random variable $y$. When $y=1$, it is called case and when $y=0$ it is called control. Denote 
+
+ \begin{equation} \label{eqn:probx}
+E(y)= P(y=1|\mathbf{x})=P(\mathbf{x}), i =1,2,...,n
+\end{equation}
+
+where $\mathbf{x}$ is a vector of covariates. The logistic model is given by. 
+\begin{equation} \label{eqn:logisticfunction}
+P(\mathbf{x})= \frac{1}{1+e^{-\mathbf{\beta}'\mathbf{x}}}
+\end{equation}
+where $\mathbf{\beta}'=(\beta_1,\beta_2,...,\beta_p)$ are the vector of coefficients of covariates $x$. The logit model can be written as 
+
+\begin{equation} \label{eqn:logisticmodel}
+\begin{array}{cc}
+\log \left[ \frac{P(\mathbf{x})}{1-P(\mathbf{x})} \right]  &= g(\mathbf{x},\mathbf{\beta})\\
+&= \mathbf{\beta}'\mathbf{x}
+\end{array}
+\end{equation}
+
+For the case of stratified data conditional logistic regression is a more appropriate analysis than logistic regression because it accounts for the strata in the study within the analysis \citep{Jewell04}. Let there be $K$ strata with $n_k$ subjects in the $k^{th}$ stratum, where $k=1,2,...,K$. There are $n_{1k}$ case subjects, $n_{0k}$ control subjects, and $n_k=n_{1k}+n_{0k}$. The conditional logistic regression model is then 
+\begin{equation} \label{eqn:clrmodel}
+P(\mathbf{x})=\pi_k(\mathbf{x})= \frac{e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}{1+e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}
+\end{equation}
+where $\alpha_k$ is a stratification parameter that is enforced when $\mathbf{x}$ is in stratum $k$. Thus $\alpha_k$ provides a level change for each of the stratums. 
+
+\section{Non-linear Stratification}
+The stratification work done in section \ref{sec:clr} works well if the relationship between covariates and response is consistent throughout the stratums or $x_{0i} \propto x_{1i}, \forall i$. For datasets where this does not hold, a linear model such as conditional logistic regression may not yield the true relationships between the covariates and response. Accommodating a non-linear stratum model requires the use of non-linear statistical algorithms to discover clusters of data that are similar. Once such clusters are discovered, we will then be able to discover the true relationships between the covariates and response. 
+
+\section{Conditional Random Forest}
+The proposed algorithm of conditional random forest, CRF, uses a random forest to discover clusters where the relationship between the case and control are linear and then conduct conditional linear regression on the nodes. CRF assumes the following relationship
+\begin{equation}
+	P(y=1|\mathbf{x} \in R_m) = \frac{e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}{1+e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}
+\end{equation}
+
+where $R_m$ is a subspace of $\mathbb{R}$. 
+
+\subsection{Grow the trees in the Random Forest}
+Let $\mathbf{x_i}=[\mathbf{x}_{0i},\mathbf{x}_{1i}]$ where $\mathbf{x}_{0i}$ is a vector of control predictors and $\mathbf{x}_{1i}$ is the vector of case predictors. A random forest is formed by growing $K$ individual trees without pruning. The tree growing algorithm, however, is modified such that it can accommodate matched data. Like the regular random forest algorithm, for each node, a random subset of covariates $p\in P$ is used to find the optimal split. A modification is made to the response when finding the purity by conditioning on the variable that the purity is based on. The response variable is set to 1 if $x_{1i} \geq x_{0i}$ and 0 if $x_{1i} < x_{0i}$. The best split based on this ad hoc response variable is then chosen. 
+
+\subsection{Forming a similarity matrix}
+After the trees of the forest are grown, a similarity matrix is formed by running all the observations down each of the trees and noting the leaf node that the observation falls into. The similarity matrix $\mathbf{A}$ is then created as follows
+\begin{equation}
+	A_{ij}=\displaystyle\sum_m^M I(\mathbf{x}_i,\mathbf{x}_j \in R_m)
+\end{equation}
+where $I(\mathbf{x}_i,\mathbf{x}_j \in R_m)$ is 1 when $\mathbf{x}_i$ and $\mathbf{x}_j$ are in region $R_m$ and 0 otherwise. Thus the greater the number, the more similar the observations are. 
+
+\subsection{Clustering the data and Conditional Logistic Regression}
+With the similarity matrix, we are then able to cluster the data. The clusters are achieved by hierarchical clustering \citep{Johnson67}. As we do not have any priors to the number of clusters there should be, we will iterate the experiments using different number of clusters. Finally conditional logistic regression is performed on each of the clusters.
+
+\subsection{Quantifying the results}
+The objective of this modeling process is to build a model that is more representative of the underlying nature of the data as oppose to just using conditional logistic regression and assuming that the relationship is linear. To assess model fit, the results can be quantified by comparing the deviance of the conditional random forest model over that of an ordinary conditional logistic regression. Deviance is similar to the sum of squares residual in a regular regression model \citep{pdSAS99}. The smaller the deviance, the better the fit. Thus we are able to do comparison based on the fit of the data between the conditional random forest and an ordinary conditional logistic regression.
+
+\section{Research Plan}
+We plan to explore how non-linear stratified data can be analyzed without the linearity assumption. An algorithm for delineating stratums has between completed and some preliminary results have been obtained from simulated data. There is much to be done in optimizing the method such as trying different parameters for the number of trees in the forest and using different methods of measuring the fit of the model. The testing of the proposed algorithm will be compared with a regular conditional logistic regression model. We will show, in the results, the robustness of the method from the performance when run on different parameters. After the method has been refined, we will then apply it to real life data to see if it is able to give better insights to non-linear stratified matched data. 
+
+
