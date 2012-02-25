@@ -1,10 +1,10 @@
 \chapter{Asymmetric SVM Paper}\label{chapter:SVMpaper}
 \section{Abstract}\label{Abstract}
-Support Vector Machines (SVM) uses a hinge loss function to penalize false predictions, regardless of whether the false prediction was that of a positive prediction or a negative prediction. In many healthcare problems, the accuracy of predicting a positive class is more important than the prediction of a negative class. Such asymmetric problems require a robust loss function that would allow different penalization for the nature of false prediction. A generalized asymmetric loss function is presented and applied to two kinds of problems: the optimization of precision, and the training of unbalanced data. Using the blood transfusion data from UCI, the asymmetric SVM was able to improve precision from 76\% to 100\%. To show the ability of training an uneven dataset, an unbalanced blood transfusion dataset was used where the number of true-positives was doubled without any loss of precision.
+In many healthcare problems, the cost of misclassifying can be different. For instance, the cost for misdiagnosing can be much higher than failing to diagnose. Such problems are known be asymmetric and learners like Support Vector Machines (SVM) which uses the hinge loss function for training fails to adequately account for the asymmetric costs. In our research, we propose a modification to the SVM loss function such that would handle such asymmetric problems. A generalized asymmetric loss function is presented and applied to two kinds of problems: the optimization of precision, and the training of unbalanced data. Using the blood transfusion data from UCI, the asymmetric SVM was able to improve precision from 76\% to 100\%. To show the ability of training an uneven dataset, an unbalanced blood transfusion dataset was used where the number of true-positives was doubled without any loss of precision.
 
 \section{Introduction}\label{Introduction}
 
-The most common data mining techniques are trained to make predictions by minimizing the error rate. In a naive fashion these techniques possess a loss function that penalizes errors by being impartial to whether the error is that of a false-positive (FP) or a false-negative (FN). Ignoring the sign of the error $y-f(x)$ throws out information about the nature of the error which proves important in some applications. There are a class of problems where the optimization of errors are focused solely on the ability to identify a positive class accurately. For such problems, the ability obtain true-positives (TP) is more important than obtaining a true-negative (TN). It may not be as important to miss some positives as long as there are not a lot of false-positives. For instance, the lawsuit that ensues from wrongly accusing a patient of medical fraud is more punitive than allowing the fraud to happen \citep{Liou08}. Correctly identifying a fraud case can be thought of as a TP while wrongly accusing a party can be thought of as a FP. Thus, ensuring that when a fraud case is identified, it is with high probability that the identification is correct. By defining precision as
+The most common data mining techniques are trained to make predictions by minimizing the error rate. In a naive fashion these techniques possess a loss function that penalizes errors by being impartial to whether the error is a false-positive (FP) or a false-negative (FN). Ignoring the sign of the error $y-f(x)$ throws out information about the nature of the error which proves important in some applications. There are a class of problems where the optimization of errors are focused solely on the ability to identify a positive class accurately. For such problems, the ability obtain true-positives (TP) is more important than obtaining a true-negative (TN). It may not be as important to miss some positives as long as there are not a lot of false-positives. For instance, the lawsuit that ensues from wrongly accusing a patient of medical fraud is more punitive than allowing the fraud to happen \citep{Liou08}. Correctly identifying a fraud case can be thought of as a TP while wrongly accusing a party can be thought of as a FP. Thus, ensuring that when a fraud case is identified, it is with high probability that the identification is correct. By defining precision as
  \begin{equation} \label{Eq:precision}
 Precision=\frac{TP}{TP+FP}
 \end{equation}
@@ -156,27 +156,29 @@ Simulated data was fabricated to test the effectiveness of the asymmetric loss S
 
 \begin{table}[htp]\label{simulatedsvmtable}
 
-\begin{tabular}{r|cccccc}
+\begin{tabular}{rrrr|cccccc}
 
 \hline
-           &   {\bf TP} &   {\bf FP} &   {\bf TN} &   {\bf FN} & {\bf Positive Accuracy} & {\bf Negative Accuracy} \\
+ \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Positive & Negative \\
+    &&&&&&&&  Precision &  Precision \\
+
 \hline
 \hline
-{\bf Standard SVM} &        127 &         90 &        110 &         73 &      0.585 &      0.601 \\
+\multicolumn{4}{c|}{Regular SVM} &        127 &         90 &        110 &         73 &      0.585 &      0.601 \\
 
-{\bf $\rho_1=0.5$} &        140 &         76 &        124 &         60 &      0.648 &      0.674 \\
+0.5   & 0.5   & 0.0   & 0.0 &        140 &         76 &        124 &         60 &      0.648 &      0.674 \\
 
-{\bf $\rho_1=0.4$} &         37 &         19 &        181 &        163 &      0.661 &      0.526 \\
+0.4   & 0.6   & 0.0   & 0.0 &         37 &         19 &        181 &        163 &      0.661 &      0.526 \\
 
-{\bf $\rho_1=0.6$} &        185 &        156 &         44 &         15 &      0.543 &      0.746 \\
+0.6   & 0.4   & 0.0   & 0.0 &        185 &        156 &         44 &         15 &      0.543 &      0.746 \\
 
-{\bf $\epsilon_1=1$} &         17 &          8 &        192 &        183 &      0.680 &      0.512 \\
+0.5   & 0.5   & 1   & 0.0 &         17 &          8 &        192 &        183 &      0.680 &      0.512 \\
 
-{\bf $\epsilon_2=1$} &        191 &        185 &         15 &          9 &      0.508 &      0.625 \\
+0.5   & 0.5   & 0.0   & 1 &        191 &        185 &         15 &          9 &      0.508 &      0.625 \\
 \hline
 \hline
 \end{tabular}
-\caption{The table shows the confusion matrix of a simulated bi-variate normal data as well as the accuracy for each of the classes. Accuracy is calculated as the percentage of correctly predicted observations. The leftmost column only shows the change in the default values of the generalized asymmetric loss. The default values are $\rho_1=0.5$ and $\epsilon_1=\epsilon2=0$.}
+\caption{The table shows the confusion matrix of a simulated bi-variate normal data as well as the precision for each of the classes. Precision is calculated as the percentage of correctly predicted observations.}
 \end{table}
 
 \begin{figure}[htp]
@@ -195,108 +197,124 @@ Simulated data was fabricated to test the effectiveness of the asymmetric loss S
 
 
 \subsection{Quantile SVM on Heart Disease Data}
-To show how asymmetric SVM can be applied to the healthcare industry, the statlog heart dataset obtained from the UCI website was used. The data consists of 270 observations of patients who may or may not have heart disease. There are 13 different attributes that range from age and sex, to maximum heart rate and fasting blood sugar. Understanding the probability of having heart disease can be beneficial to health care providers and patients. Thus, by using an SVM that will results in high accuracy in either class, the asymmetric SVM is used to predict a subset of patients who have the highest probability of having heart disease or the highest probability of not having heart disease. A regular SVM and a median SVM ($\rho_1=0.5$) were used to establish a benchmark and a baseline for how asymmetric learning can add value. The baseline for the experiments is defined as the starting or "default" setting for the proposed loss function to establish the performance of the loss function before any adjustments were made to the parameters. The benchmark, which is a regular SVM, is what the experiments will be compared against. A 5 fold cross-validation is applied to the data and the results are averaged from the 5 folds. The accuracy of the positive class compared to the baseline median SVM improved from 0.754 to 0.95 when $\rho_1$ is changed to 0.2 and the accuracy of the negative class improved from 0.819 to 0.961 when $\rho_1$ was changed to 0.8. The results also improved when both sides of the $\epsilon$-sensitive tube were modified. When $\epsilon_1=1$, the accuracy was 1 and when $\epsilon_2=1$, the accuracy for the negative class was 0.983. It must be noted that although the accuracy got better, the improvements also resulted in lesser observations being classified for the class being optimized.
+To show how asymmetric SVM can be applied to the healthcare industry, the statlog heart dataset obtained from the UCI website was used. The data consists of 270 observations of patients who may or may not have heart disease. There are 13 different attributes that range from age and sex, to maximum heart rate and fasting blood sugar. Understanding the probability of having heart disease can be beneficial to health care providers and patients. By using an SVM that predicts with high accuracy either class, we are able to classify, with high confidence, a subset of patients who have heart disease and the highest probability of not having heart disease. To assess the performance of the method, A regular SVM and a median SVM(where we set the following parameters $\rho_1=0.5,\rho_2=0.5,\epsilon_1=0,\epsilon_2=0$) were used to establish a benchmark and a baseline for how asymmetric learning can add value. We use a regular SVM as the benchmark as it is an alternative method to the method proposed in this paper. The median SVM is used as a baseline to contrast the changes in results when as we change the parameters for the asymmetric SVM. A 5 fold cross-validation is applied to the data and the results are averaged from the 5 folds. The results for various parameter values of the asymmetric SVM are shown in table \ref{table:HeartDisease1}. 
 
-Next, the loss function is tested by adjusting both $\rho$ and the $\epsilon$-sensitive tube of the loss function to achieve better accuracy. The simultaneous adjustment of two parameters offers greater flexibility to how errors are penalized. However, one cannot adjust the $\rho$'s without accounting for the $\epsilon$'s and vice versa as both sets of parameters affect the risk aversion of the trained SVM. To accounting for both sets of parameters, the magnitude for the parameters had to be lower than the previous SVMs as now there were 2 parts of the loss function that were being used to achieve high precision. Setting $\rho_1=0.3$ and $\epsilon_1=0.5$ increased the positive class accuracy to 0.891. To optimize the precision of the negative class, $\rho_1$ was set to 0.7 and $\epsilon_2$ to 0.5, increasing the precision from the baseline to 0.898. 
+          
 
-Instead of adjusting both the $\rho$ and $\epsilon$ parameters in a single SVM, the use of two separate SVMs, one with the $\epsilon$'s adjusted and the other with the $\rho$'s adjusted, can be constructed to evaluate if adjusting both sets of parameters within an SVM is superior to combining the results of two separate SVMs. In this two separate SVM experiment, the consensus of the SVMs will indicate the classification of the class of interest. Combining the results of the SVM where $\rho_1=0.2$ and the SVM where $\epsilon_1=1$, an observation is only classified positive if both SVMs agree. A similar consensus strategy is done with the SVM where $\rho_1=0.8$ and the SVM where $\epsilon_2=1$. The results of this consensus framework yield better accuracy than that of adjusting both sets of parameters within one SVM. 
+\begin{table}[htbp]\label{table:HeartDisease1}
+  \centering
+    \begin{tabular}{rrrr|rrrrrrrr}
+    \hline
+    \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Positive & Positive & Negative & Negative\\
+    &&&&&&&&  Precision &  Recall &  Precision &  Recall \bigstrut\\
+    \hline
+    \hline
+   \multicolumn{4}{c|}{Regular SVM} & 18    & 6     & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut[t]\\
+    0.2   & 0.8   & 0     & 0     & 3     & 21    & 1     & 29    & 0.883 & 0.139 & 0.587 & 0.980 \bigstrut[t]\\
+    0.3   & 0.7   & 0.0   & 0.0   & 9     & 15    & 1     & 29    & 0.878 & 0.375 & 0.657 & 0.953 \\
+    0.4   & 0.6   & 0.0   & 0.0   & 14    & 10    & 2     & 28    & 0.874 & 0.572 & 0.733 & 0.927 \\
+    0.5   & 0.5   & 0.0   & 0.0   & 18    & 6     & 5     & 25    & 0.811 & 0.741 & 0.804 & 0.843 \\
+    0.6   & 0.4   & 0.0   & 0.0   & 20    & 4     & 9     & 21    & 0.698 & 0.851 & 0.842 & 0.686 \\
+    0.7   & 0.3   & 0.0   & 0.0   & 22    & 2     & 14    & 16    & 0.619 & 0.919 & 0.882 & 0.545 \\
+    0.8   & 0.2   & 0.0   & 0.0   & 23    & 1     & 19    & 11    & 0.551 & 0.960 & 0.917 & 0.374 \\
+    0.5   & 0.5   & 0.5   & 0.0   & 14    & 10    & 2     & 28    & 0.872 & 0.589 & 0.737 & 0.919 \\
+    0.5   & 0.5   & 1.0   & 0.0   & 5     & 19    & 0     & 30    & 0.935 & 0.201 & 0.606 & 0.987 \\
+    0.5   & 0.5   & 0.0   & 0.5   & 21    & 3     & 9     & 21    & 0.721 & 0.859 & 0.852 & 0.711 \\
+    0.5   & 0.5   & 0.0   & 1.0   & 24    & 0     & 21    & 9     & 0.532 & 0.985 & 0.943 & 0.304 \\
+    0.3   & 0.7   & 0.5   & 0.0   & 8     & 16    & 1     & 29    & 0.924 & 0.315 & 0.640 & 0.965 \\
+    0.7   & 0.3   & 0.0   & 0.5   & 23    & 1     & 15    & 15    & 0.605 & 0.960 & 0.933 & 0.495 \bigstrut[b]\\
+    \hline
+    \hline
+    \end{tabular}%
+    \caption{Results from a 5 fold cross-validation on heart disease data. The left columns show the parameter values that were chosen. The results are formed from the average of the 5 fold cross-validation.}
+\end{table}%
 
-The previous SVM constructions were optimize to accurately predict one of the classes. It is also possible to construct an algorithm with the use of these SVMs to achieve accuracy for both classes. Up to this point, there was no accounting to ensure that an observation that is classified positive by an SVM optimized for the positive class was not going to be classified as negative if the parameter values were reversed. In other words, if an observation was classified positive when $\rho=0.2$, there was no check to ensure that observation was not classified as negative when $\rho=.8$. Accounting for this ensures robustness in the asymmetric accuracy and could make an asymmetric prediction better. Thus, an extension to focusing on just one class, an array of SVMs can be trained to form a combined model that optimizes the precision of both classes simultaneously. This is done by taking the combined vote of multiple asymmetric SVMs. For this paper, a simple voting system is used where four SVMs, each with an adjustment of only one of the loss function's parameter. However, because the individual SVMs are optimized to only classify one of the classes, they can only vote on the class they are optimizing. For instance, if an SVM trained to predict positive class classifies an observation as negative, that classification will be discounted. The SVMs that are optimized for the positive class ($\rho_1=.3$ and $\epsilon_1=.5$) each scores an observation 1 for a positive classification and 0 for a negative classification. Conversely, the SVMs that are optimized for the negative class($\rho_1=.7$ and $\epsilon_2=.5$) each scores a -1 for a negative classification and 0 for a positive classification. The results for all four SVMs are summed and if the summed score is 2, the combined classifier classifies the observation as positive and if the summed score is -2 it is classified as negative. Those observations that have neither a -2 or a 2 summed score will not be classified as the combined classifier is unable to determine accurately the class of the observation. The precision for the combined voting method was 0.879 for the positive class and 0.9 for the negative class. Thus the method shows improvement in both classes from the baseline of the median SVM.
 
-\begin{table}[htp]
-% Table generated by Excel2LaTeX from sheet 'Sheet3'
-\begin{tabular}{rc|cccc}
-\hline
-           &            & Accuracy  & Accuracy Std &          N &      N Std \\
-\hline
-\hline
-Regular SVM & Postive Class &      0.764 &      0.073 &     18.400 &      2.966 \\
+The precision of the positive class compared to the median SVM improved from 0.81 to 0.88 as we decrease the value of $\rho_1$ and the precision of the negative class improved from 0.80 to 0.92 when we increased the value of $\rho_1$. Improvement in positive class precision was also achieved by adjusting $\epsilon_1$ to 1 which resulted in a 0.12 increase in precision. The negative class precision increased when we increased the value of $\epsilon_2$ to 0.94. 
 
-           & Negative Class &      0.819 &      0.115 &     24.000 &      4.183 \\
-\hline
-    $\rho_1=0.5$ & Postive Class &      0.794 &      0.076 &     18.200 &      2.168 \\
 
-           & Negative Class &      0.821 &      0.120 &     25.000 &      3.536 \\
-\hline
-    $\rho_1=0.2$ & Postive Class &      0.950 &      0.112 &      3.600 &      1.949 \\
+The loss function is tested by adjusting both $\rho$ and the $\epsilon$-sensitive tube of the loss function to achieve better accuracy. The simultaneous adjustment of two parameters offers greater flexibility to how errors are penalized. Setting $\rho_1=0.3$ and $\epsilon_1=0.5$ increased the positive class precision to 0.92. To optimize the precision of the negative class, $\rho_1$ was set to 0.7 and $\epsilon_2$ to 0.5, increasing the precision from the baseline to 0.93. 
 
-           & Negative Class &      0.595 &      0.086 &     29.800 &      3.564 \\
-\hline
-    $\rho_1=0.8$ & Postive Class &      0.554 &      0.077 &     23.200 &      2.588 \\
+The tables show that when we optimized the asymmetric SVM precision, we are able to get precision values that out-perform the regular SVM. It must be noted that although the accuracy got better, the improvements also resulted in lesser observations being classified for the class being optimized. The net result is a trade off in recall. 
 
-           & Negative Class &      0.942 &      0.093 &     11.200 &      0.837 \\
-\hline
-      $\epsilon_1=1$ & Postive Class &      1.000 &      0.000 &      5.200 &      1.643 \\
+Instead of adjusting both the $\rho$ and $\epsilon$ parameters in a single SVM, the use of two separate SVMs, one with the $\epsilon$'s adjusted and the other with the $\rho$'s adjusted, can be constructed to evaluate if adjusting both sets of parameters within an SVM is superior to combining the results of two separate SVMs. In this two separate SVM experiment, the consensus of the SVMs will indicate the classification of the class of interest. Combining the results of the SVM where $\rho_1=0.2$ and the SVM where $\epsilon_1=1$, an observation is only classified positive if both SVMs agree. A similar consensus strategy is done with the SVM where $\rho_1=0.8$ and the SVM where $\epsilon_2=1$. The results of this consensus framework yield better accuracy than that of adjusting both sets of parameters within one SVM. Table \ref{HeartDisease2} shows the results for the consensus SVM experiment. 
 
-           & Negative Class &      0.615 &      0.077 &     30.000 &      3.536 \\
-\hline
-      $\epsilon_2=1$ & Postive Class &      0.535 &      0.076 &     23.600 &      3.286 \\
+% Table generated by Excel2LaTeX from sheet 'Finalresults2'
+\begin{table}[htbp]\label{table:HeartDisease2}
+  \centering
+    \begin{tabular}{rrrr|rrrrrrrr}
+    \hline
+    \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Positive & Positive & Negative & Negative\\
+    &&&&&&&&  Precision &  Recall &  Precision &  Recall \bigstrut\\
+    \hline
+    \hline
+   \multicolumn{4}{c|}{Regular SVM} & 18    & 6     & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut\\
+    \hline
+    0.5   & 0.5   & 0     & 0     & 17.6  & 6.4   & 4.6   & 25.4  & 0.811 & 0.741 & 0.804 & 0.843 \bigstrut\\
+    \hline
+    0.2   & 0.8   & 0     & 0     & 3.0   & 18.8  & 0.4   & 29.4  & 0.900 & 0.123 & 0.610 & 0.980 \bigstrut[t]\\
+    0.5   & 0.5   & 1     & 0     &       &       &       &       &       &       &       &  \bigstrut[b]\\
+    \hline
+    0.8   & 0.2   & 0     & 0     & 22.8  & 0.2   & 16.4  & 6.6   & 0.586 & 0.952 & 0.967 & 0.221 \bigstrut[t]\\
+    0.5   & 0.5   & 0     & 1     &       &       &       &       &       &       &       &  \bigstrut[b]\\
+    \hline
+    \hline
+    \end{tabular}%
+    \caption{Asymmetric consensus with two SVMs. The first 2 rows show the results for a regular and median SVM. The remaining rows have 2 sets of parameters that are for the two SVMs in the consensus. The results represent the average values obtained from a 5 fold cross-validation.}
+\end{table}%
 
-           & Negative Class &      0.961 &      0.054 &      9.400 &      2.074 \\
-\hline
-$\rho_1=0.3$ and $\epsilon_1=0.5$ & Postive Class &      0.891 &      0.104 &      7.800 &      1.304 \\
+The previous SVM constructions were optimize to accurately predict one of the classes. It is also possible to construct an algorithm with the use of these SVMs to achieve accuracy for both classes. Up to this point, there was no accounting to ensure that an observation that is classified positive by an SVM optimized for the positive class was not going to be classified as negative if the parameter values were reversed. In other words, if an observation was classified positive when $\rho=0.2$, there was no check to ensure that observation was not classified as negative when $\rho=.8$. Accounting for this ensures robustness in the asymmetric accuracy and could make an asymmetric prediction better. Thus, an extension to focusing on just one class, an array of SVMs can be trained to form a combined model that optimizes the precision of both classes simultaneously. This is done by taking the combined vote of multiple asymmetric SVMs. For this paper, a simple voting system is used with four SVMs, each with an adjustment of only one of the loss function's parameter. However, because the individual SVMs are optimized to only classify one of the classes, they can only vote on the class they are optimizing. For instance, if an SVM trained to predict positive class classifies an observation as negative, that classification will be discounted. The SVMs that are optimized for the positive class ($\rho_1=.3$ and $\epsilon_1=.5$) each scores an observation 1 for a positive classification and 0 for a negative classification. Conversely, the SVMs that are optimized for the negative class($\rho_1=.7$ and $\epsilon_2=.5$) each scores a -1 for a negative classification and 0 for a positive classification. The results for all four SVMs are summed and if the summed score is 2, the combined classifier classifies the observation as positive and if the summed score is -2 it is classified as negative. Those observations that have neither a -2 or a 2 summed score will not be classified as the combined classifier is unable to determine accurately the class of the observation. Table \ref{table:HeartDisease3} shows the performance of the results for this consensus symmetric SVM. The precision for the combined voting method was 0.88 for the positive class and 0.88 for the negative class. Thus the method shows improvement in both classes from the baseline of the median SVM.
 
-           & Negative Class &      0.642 &      0.084 &     29.000 &      3.536 \\
-\hline
-$\rho_1=0.7$ and $\epsilon_2=0.5$ & Postive Class &      0.590 &      0.060 &     22.400 &      2.302 \\
+% Table generated by Excel2LaTeX from sheet 'Finalresults3'
+\begin{table}[htbp]\label{table:HeartDisease3}
+  \centering
+    \begin{tabular}{rrrrrrrrr}
+    \hline
+       & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Positive & Positive & Negative & Negative\\
+&&&&&  Precision &  Recall &  Precision &  Recall \bigstrut\\
+    \hline
+    \hline
+    Regular SVM & 18.4  & 5.6   & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut[t]\\
+    Median SVM & 17.6  & 6.4   & 4.6   & 25.4  & 0.811 & 0.741 & 0.804 & 0.843 \\
+    Consensus SVM & 9.0   & 2.0   & 1.4   & 16.4  & 0.878 & 0.375 & 0.882 & 0.545 \bigstrut[b]\\
+    \hline
+    \hline
+    \end{tabular}%
+    \caption{Results for the consensus asymmetric SVM compared against the regular and median SVM.}
+\end{table}%
 
-           & Negative Class &      0.898 &      0.130 &     14.400 &      2.967 \\
-\hline
- Consensus & Postive Class &      1.000 &      0.000 &      2.800 &      2.387 \\
-
-           & Negative Class &      0.983 &      0.037 &      7.400 &      2.881 \\
-\hline
-  Combined & Postive Class &      0.879 &      0.111 &      8.800 &      1.483 \\
-
-           & Negative Class &      0.900 &      0.125 &     16.600 &      2.702 \\
-\hline
-\hline
-\end{tabular}
-\caption{Precision and count (N) of the number classified in each class. The values in the Accuracy and N columns are the average of the 5 fold cross-validation. The Accuracy Std and N Std are the standard deviations of the 5 fold cross-validation. The leftmost column show the parameters that were changed from the baseline asymmetric loss function. The consensus row show the results of using the consensus of two SVMs, each with either the $\epsilon$ or $\rho$ adjusted. The Combined row shows the results of using a voting system from a multiple SVM ensemble. Thus, for the Combined row, the positive and negative classes were estimated simultaneously}
-\end{table}
 
 \subsection{Quantile SVM on Blood Transfusion Data}
-To show how having an asymmetric loss function can be useful in classifying data with uneven classes, a dataset retrieved from the Blood Transfusion Service Center in Hsin-Chu City in Taiwan was used \citep{Yeh09}. The set has 5 predictor variables that were used to classify whether or not a person will donate blood. The dataset, consisting of 748 observations, has only 23\% of rows that are in the positive class (donated blood). This presents the problem of an unbalanced class dataset, a problem that is common in medical data. Typically for such problems, using a standard SVM would often result in all the data being classified as negative. It is thus beneficial to apply an asymmetric SVM to penalize classifying a FP less so as to increase the number of observations being classified as positive. This change to the loss function while increasing the observations of positive classification, also may reduce the accuracy of the observations classified positive. The predictor variables are first standardized to mean 0 and standard deviation 1 on the full dataset to prevent the dominance of variables with high magnitude. Like the heart disease data, the parameter of the kernel and penalizing parameter \emph{C} were held constant at 1. To try and recreate the testing scenario of \citet{Yeh09} paper where 500 observations were randomly picked to be insample and the remainder to be outsample, a 3 folds cross-validation was used as the number of folds for approximating the number of in and out sample for each run. A 3 fold cross-validation results in each fold having approximately 499 insample observations, which is close to the number of insample observations used in \citet{Yeh09}. Thus a 3 fold cross-validation was conducted and the results are presented in Table \ref{bloodtransfusion}.
+To show how having an asymmetric loss function can be useful in classifying data with uneven classes, a dataset retrieved from the Blood Transfusion Service Center in Hsin-Chu City in Taiwan was used \citep{Yeh09}. The set has 5 predictor variables that were used to classify whether or not a person will donate blood. The dataset, consisting of 748 observations, has only 23\% of rows that are in the positive class (donated blood). This presents the problem of an unbalanced class dataset, a problem that is common in medical data. Typically for such problems, using a standard SVM would often result in all the data being classified as negative. It is thus beneficial to apply an asymmetric SVM to penalize classifying a FP less so as to increase the number of observations being classified as positive. This change to the loss function while increasing the observations of positive classification could reduce the accuracy of the observations classified positive. The predictor variables are first standardized to mean 0 and standard deviation 1 on the full dataset to prevent the dominance of variables with high magnitude. Like the heart disease data, the parameter of the kernel and penalizing parameter \emph{C} were held constant at 1. To try and recreate the testing scenario of \citet{Yeh09} paper where 500 observations were randomly picked to be insample and the remainder to be outsample, a 3 folds cross-validation was used as the number of folds for approximating the number of in and out sample for each run. A 3 fold cross-validation results in each fold having approximately 499 insample observations, which is close to the number of insample observations used in \citet{Yeh09}. Thus a 3 fold cross-validation was conducted and the results are presented in Table \ref{bloodtransfusion}.
 
 
 \begin{table}[htp]
-\begin{tabular}{rc|cccc}
+% Table generated by Excel2LaTeX from sheet 'BloodTemplate'
+\begin{tabular}{rrrr|rr}
 \hline
-           &            & Accuracy  & Accuracy Std &          TP &      TP Std \\
-\hline
-\hline
-Regular SVM & Postive Class &      0.379 &      0.048 &      4.000 &      1.732 \\
-
-           & Negative Class &      0.769 &      0.043 &    183.000 &      5.292 \\
-\hline
-    $\rho_1=0.5$ & Postive Class &      0.806 &      0.174 &      2.333 &      0.577 \\
-
-           & Negative Class &      0.769 &      0.038 &    189.333 &      9.292 \\
-\hline
-    $\rho_1=0.7$ & Postive Class &      0.411 &      0.092 &      4.333 &      2.082 \\
-
-           & Negative Class &      0.769 &      0.042 &    182.667 &      5.508 \\
-\hline
-    $\epsilon_2=0.5$ & Postive Class &      0.379 &      0.048 &      4.000 &      1.732 \\
-
-           & Negative Class &      0.769 &      0.043 &    183.000 &      5.292 \\
-\hline
-$\rho_1=0.6$ or $\epsilon_2=0.4$ & Postive Class &      0.409 &      0.079 &      4.000 &      1.732 \\
-
-           & Negative Class &      0.769 &      0.431 &    183.667 &      5.686 \\
-\hline
-  Combined & Postive Class &      0.392 &      0.021 &      8.667 &      2.082 \\
-
-           & Negative Class &      0.778 &      0.048 &    176.667 &      7.234 \\
+$\rho_1$ & $\rho_2$ & $\epsilon_1$ & $\epsilon_2$ & Precision & TP \bigstrut\\
 \hline
 \hline
-\end{tabular}
-\caption{Results of blood transfusion data from a 3 fold cross-validation. The Precision and TP are averaged from the 3 folds. Precision Std and TP Std are the standard deviations of the 3 folds}
+ \multicolumn{4}{c|}{Regular SVM}     & 0.379 & 4 \bigstrut\\
+\hline
+0.5   & 0.5   & 0     & 0     & 0.806 & 2 \bigstrut\\
+\hline
+0.7   & 0.3   & 0     & 0     & 0.411 & 4 \bigstrut\\
+\hline
+0.5   & 0.5   & 0     & 0.5   & 0.379 & 4 \bigstrut\\
+\hline
+0.6   & 0.4   & 0     & 0.4   & 0.409 & 4 \bigstrut\\
+\hline
+0.75  & 0.25  & 0     & 0     & 0.392 & 9 \bigstrut[t]\\
+0.5   & 0.5   & 0     & 0.7   &       &  \bigstrut[b]\\
+\hline
+\hline
+\end{tabular}%
+\caption{Results of blood transfusion data from a 3 fold cross-validation. The Precision and TP are averaged from the 3 folds. The final row represents a consensus between 2 trained SVM where if either predicts positive, then the final prediction is positive.}
 \label{bloodtransfusion}
 \end{table}
 
-
-As the objective is to increase the number of positive class while maintaining reasonable accuracy, the loss function should be formed to penalize a FP less. Setting $\rho_1=0.7$, the positive class precision was 0.411 and N increased marginally from the regular SVM but doubled when compared with the baseline of the median SVM. Setting $\epsilon_2$ to 0.5 resulted in no increase in the number of TP from the regular SVM. Instead of just adjusting a single parameter, both the $\epsilon$ and $\rho$ parameters in the loss function can be adjusted simultaneously to increase the positive observations classified. $\rho_1$ was set to 0.6 and $\epsilon_2$ to 0.4. To maintain a reasonable level of precision, the magnitudes of the parameters were set lower than the previous SVMs that had only one parameter changed. By manipulating both parameters, better precision in the positive class was achieved without compromising the number of TP. The use of multiple asymmetric SVMs is implemented to achieve better positive class hits. Because $\epsilon$ and $\rho$ parameters handle errors in a slightly different way, the ability to estimate results separately and seek consensus could yield better results. Thus, two separate SVMs, one with $\rho_1=.7$ and the other with $\epsilon_2=0.5$, were trained. An observation is classified as positive if it was classified as positive in either of the SVMs. The resulting precision is 0.392 and the number of TP increased to 8.667.
+As the objective is to increase the number of cases predicted positive while maintaining reasonable accuracy, the loss function should be formed to penalize a FP less. Setting $\rho_1=0.7$, the positive class precision was 0.411 and N increased marginally from the regular SVM but doubled when compared with the baseline of the median SVM. Setting $\epsilon_2$ to 0.5 resulted in no increase in the number of TP from the regular SVM. Instead of just adjusting a single parameter, both the $\epsilon$ and $\rho$ parameters in the loss function can be adjusted simultaneously to increase the positive observations classified. $\rho_1$ was set to 0.6 and $\epsilon_2$ to 0.4. To maintain a reasonable level of precision, the magnitudes of the parameters were set lower than the previous SVMs that had only one parameter changed. By manipulating both parameters, better precision in the positive class was achieved without compromising the number of TP. The use of multiple asymmetric SVMs is implemented to achieve better positive class hits. Because $\epsilon$ and $\rho$ parameters handle errors in a slightly different way, the ability to estimate results separately and seek consensus could yield better results. Thus, two separate SVMs, one with $\rho_1=.7$ and the other with $\epsilon_2=0.5$, were trained. An observation is classified as positive if it was classified as positive in either of the SVMs. The resulting precision is 0.39 and the number of TP increased to 9.
 
 \section{Conclusion}
  This paper explores the use of a generalized asymmetric loss function to achieve asymmetric loss and applies this loss function to SVM for classification problems. As a further extension of the pinball loss function that is found in quantile regression, the generalized loss function is flexible enough to not only set different penalization standards for FP and FN, it is able to allow for the adjustment of an  $\epsilon$-sensitive tube. This generalized loss function serves two different purposes: training classifiers when there is imbalanced data, and optimizing accuracy for a class of interest. This technique is useful in a variety of applications and the paper has shown that it is particularly beneficial in health care. In applying the method to heart disease where there are obvious advantages to doctors and insurance companies in finding a subset of patients with high or low risk of getting a heart disease, it was shown that the use of the loss function proposed in this paper improved the accuracy of the positive and negative class from that of the regular SVM. The trade off for the increase in accuracy came at the cost of a reduced number of observations being classified as the class that is being optimized. Using a consensus approach allowed for the combination of multiple asymmetric SVM classifiers to be used for class prediction. An SVM classifier designed to minimize FP and be combined with one that is designed to minimize FN to produce a classifier that optimizes both cases. The use of blood transfusion data on the proposed loss function illustrate the benefits of using asymmetry to increase the number of observations classified as positive for an imbalanced dataset. The use of two asymmetric loss function SVM, each with either $\rho$ or $\epsilon$ adjusted, was shown to improve both the accuracy and the number of TPs from just using a regular SVM. As the experiments presented served as examples to show how a change in the loss function could potentially improve the performance of accuracy and increase the number of classified observations, they do not present the optimized abilities of such loss functions. Much improvements can be achieved if a search is done to find a combination of the hyper-parameters of the kernel, $\epsilon$, $\rho$, and the penalizing parameter \emph{C}, through cross validation. More importantly, using an asymmetric loss function requires the decision of the trade-off between the number of instances classified and accuracy. Such decisions are idiosyncratic to individual problems and the agents would have to decide what values of classified instances and accuracy they are comfortable with. Nevertheless, the general problem
