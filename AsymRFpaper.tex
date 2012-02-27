@@ -1,5 +1,32 @@
+\documentclass[twoside,11pt]{article}
+\usepackage{sty_files/jmlr2e}
+\usepackage{amsmath,multirow,subfigure,bigstrut}
+\usepackage[ruled,vlined]{algorithm2e}	
+% Heading arguments are {volume}{year}{pages}{submitted}{published}{author-full-names}
+\jmlrheading{1}{2012}{1-48}{4/00}{10/00}{George Runger and Derek Koh}
 
-\chapter{Asymmetric Random Forest for Variable Selection}\label{chapter:AsymRFpaper}
+% Short headings should be running head and authors last names
+\ShortHeadings{Asymmetric Random Forest for Variable Selection}{Runger and Koh}
+\firstpageno{1}
+
+\title{Asymmetric Random Forest for Variable Selection}
+
+\author{\name George Runger \email George.Runger@asu.edu\\
+       \addr Sch Compt Infor \& Dec Sys Engr\\
+       Arizona State University\\
+       Tempe, AZ 85281, USA
+       \AND
+       \name Derek Koh \email Derek.Koh@asu.edu \\
+       \addr Sch Compt Infor \& Dec Sys Engr\\
+       Arizona State University\\
+       Tempe, AZ 85281, USA}
+
+\editor{Leslie Pack Kaelbling}
+
+
+\begin{document}
+\maketitle
+
 \section{Introduction}
 In Chapter \ref{chapter:SVMpaper}, an asymmetric loss function was proposed and applied on SVM. Some attempts were made to create ensembles out of this SVM to improve accuracy. The focus for this chapter is on picking the variables that are relevant for asymmetric prediction. The benefits for asymmetric learners as oppose to symmetric learners have been heavily made in Chapter \ref{chapter:SVMpaper}. It is only natural to explore a better way of variable selection such that the right variables are used in the classifier to produce high accuracy for the class of interest. Trees traditionally take the mode or average value of the leaf node to classify an observation that falls into that leaf. Such central tendency predictions are not robust to asymmetric predictions because they fail to account for the risk of misclassification of one side of a binary class. Tree based algorithms can be modified, like the SVM, such that it will be able to make asymmetric predictions. Similarly, the generic random forest algorithm, which has a symmetric loss function, can be modified to allow for asymmetry.
 
@@ -135,3 +162,6 @@ As asymmetric variable selection is sparsely documented in the data mining liter
 % \end{itemize}
 
 % The results will be compared between each other and the regular symmetric conjugates of the methods. A theoretical dataset and real-life datasets from the UCI repository will be used to test the models. Finally a write up will be done to discuss the differences in performance in the different asymmetric loss functions. 
+
+\bibliography{bibliography}
+\end{document}
