@@ -1,10 +1,23 @@
 
 \chapter{Asymmetric Random Forest for Variable Selection}\label{chapter:AsymRFpaper}
 \section{Introduction}
-In Chapter \ref{chapter:SVMpaper}, an asymmetric loss function was proposed and applied on SVM. Some attempts were made to create ensembles out of this SVM to improve accuracy. The focus for this chapter is on picking the variables that are relevant for asymmetric prediction. The benefits for asymmetric learners as oppose to symmetric learners have been heavily made in Chapter \ref{chapter:SVMpaper}. It is only natural to explore a better way of variable selection such that the right variables are used in the classifier to produce high accuracy for the class of interest. Trees traditionally take the mode or average value of the leaf node to classify an observation that falls into that leaf. Such central tendency predictions are not robust to asymmetric predictions because they fail to account for the risk of misclassification of one side of a binary class. Tree based algorithms can be modified, like the SVM, such that it will be able to make asymmetric predictions. Similarly, the generic random forest algorithm, which has a symmetric loss function, can be modified to allow for asymmetry.
+In Chapter \ref{chapter:SVMpaper}, an asymmetric loss function was proposed and applied on SVM. Some attempts were made to create ensembles out of this SVM to improve accuracy. The focus for this chapter is on picking the variables that are relevant for asymmetric prediction. The benefits for asymmetric learners as oppose to symmetric learners have been heavily made in Chapter \ref{chapter:SVMpaper}. It is only natural to explore a better way of variable selection such that the right variables are used in the classifier to produce high accuracy for the class of interest. Trees traditionally take the mode or average value of the leaf node to classify an observation that falls into that leaf. Such central tendency predictions are not robust to asymmetric predictions because they fail to account for the risk of misclassification of one side of a binary class. Tree based algorithms can be modified, like the SVM, such that it will be able to make asymmetric predictions. Similarly, the generic random forest algorithm, which has a symmetric loss function, can be modified to allow for asymmetry
+
+\section{Background}
+Variable selection is an important part of machine learning as it provides a subset of variables that are useful for prediction. Predictors selected by variable selection techniques have the ability to predict the values of predictors with little consideration for the ability to predict a particular value of the predictor better. As asymmetric problems are concerned with the problem of predicting one response with higher precision, one can revamp the focus of variable selection such that we choose variables that are most capable in predicting a specified response value.
+
+In asymmetry, we do not need the variable to be apt at predicting all values of the response, only the specific value that we want to focus on. Let $y \in (-1,1)$, we have a model $f(\mathbf{x})=y$ where $\mathbf{x} = (x_1,x_2,...,x_p)$ and $x_{i} \in P$. We would like to find a set of $x$'s such that $\displaystyle\max_{\mathbf{x}}P(y=1,f(\mathbf{x})=1)$. Finding variables that maximizes the function $\displaystyle\max_{\mathbf{x}}P(y=f(\mathbf{x}))$ has been widely studied in the literature and is the basis for most variable selection algorithm. 
+
+There are three main ways the variable selection is conducted \citep{Saeys07} : filter, wrapper, embedded. The filter selection techniques assesses the intrinsic properties of the predictor and assigns a score. The variables with the best scores are the picked. The simplest filters come in the form of t-stat or ANOVA  \citep{Jafari06}. Correlation based feature selection (CFS) is a method that picks variables with high correlation to the dependent variable and low correlation to the other independent variables \citep{Hall99}. Similar to CFS is the minimum Redundancy Maximum Relevance Feature Selection (mRMR) which is based on the concept of gathering a subset of independent variables that are highly predictive of the dependent variable and highly dissimilar with other independent variables \citep{Ding03}. Markov blanket filter builds a Markov blanket that contains a minimal subset of relevant features that yields optimal classification \citep{Zeng09}. 
+
+Wrappers utilize a learning algorithm as a black box to score subsets of variable according to their predictive power. The wrapper methodology was popularized by \citet{Kohavi96} and is a simple and powerful way to address the problem of variable selection, regardless of the chosen algorithm. Some popular known wrapper algorithms include sequential forward and backward selection \citep{Kittler78}, zimulated annealing\citep{Kirkpatrick83}, randomized hill climbing \citep{Skalak94}, genetic algorithms \citep{Holland75}, and estimation of distribution algorithms (EDA) \citep{Blanco04}. Sequential forward and backward selection uses regression as the learner to decide the best subset of variables that are relevant. Simulated annealing, randomized hill climbing and genetic algorithms both use some form of randomness to find a subset of variables that are pertinent for model prediction. The estimation of distribution algorithm is a general version of the genetic algorithm. When iterating a genetic algorithm to find the best subsets, equal priors are placed on each of the variables in the current subset. In EDA, the priors are updated and represents a probability distribution of the variable's pertinence. 
+
+For embedded methods, the search for a best subset of features is built into the classifier construction, and can be seen as a search in the combined space of feature subsets and hypotheses. This process may be more efficient in several respects. First, it makes use of the available data by not needing to split the training data into a training and validation set. Second, it reaches a solution faster by avoiding retraining a predictor from scratch for every variable subset investigated. Embedded methods are not new: decision trees such as CART \citep{Breiman84}, for instance, have a built-in mechanism to perform variable selection. Random forest is an algorithm that is widely used in the literature as an embedded system for variable selection \citep{Diaz06}\citep{Jiang04}. A variant of SVM known as SVM with recursive feature selection is an SVM method that has an embedded feature selection technique \citep{Guyon02}. Finally \citet{Ma05} tweaks the logistic regression method to produce an embedded method that eliminates variables with small weights.
+
+A review of the methods in the literature failed to shed light on finding variables that are particularly good at asymmetric prediction. Asymmetric variables appear to be an area that has not been widely studied. However, asymmetric variables appear to be prevalent in the literature. \citet{Matzler04} did a regression analysis to find out what attributes lead to better overall customer satisfaction. They showed that for variables of complaint handling, project management, and innovativeness, when the performance is low, there is a significant effect on overall satisfaction. However, when these same variables showed high performance, the effect on overall satisfaction is insignificant. \citet{Froyen97} studied whether political pressures add significant explanatory power in monetary policy. They found that in white house administrations that pressure the Federal Reserve to tighten monetary policy results in higher interest rates whereas in white house administrations that promote loose monetary policy does not affect the interest rates. Finally \citet{Karras97} identified money-supply shocks and their effects on output for a panel of 18 European countries and found that many different specifications and estimation methods strongly support asymmetry: negative money-supply shocks are shown to have a statistically significant effect on output, whereas the effect of positive shocks is statistically insignificant. 
 
 \section{Loss functions in trees}
-For this research, we will be focusing on modifying the random forest algorithm by \citet{Breiman01}. But before we talk about how the random forest algorithm works, it is worth while to discuss the precursor to the random forest algorithm. We will be looking specifically at the CART algorithm by \citet{Breiman84}. In general, the algorithm by \citet{Breiman84} proposed divides the predictor space by recursively splitting the data. Each splitting rule splits the space into two separate regions $R_i$ and $R_j$, $i \neq j$. Each region $R_m,m \in M$ is called a node. Each rule forms a decision boundary, and a leaf node is the final partition after all the rules are enforced. The classification of data is done at the leaf node by the following loss function for a regression tree
+For this research, we will be focusing on modifying the random forest algorithm by \citet{Breiman01}. But before we discuss how the random forest algorithm works, it is worth while to discuss the precursor to the random forest algorithm. We will be looking specifically at the CART algorithm by \citet{Breiman84}. In general, the algorithm by \citet{Breiman84} proposed divides the predictor space by recursively splitting the data. Each splitting rule splits the space into two separate regions $R_i$ and $R_j$, $i \neq j$. Each region $R_m,m \in M$ is called a node. Each rule forms a decision boundary, and a leaf node is the final partition after all the rules are enforced. The classification of data is done at the leaf node by the following loss function for a regression tree
 
 \begin{equation}
 	\begin{array}{rcl}
@@ -47,31 +60,39 @@ Make a prediction by letting each tree classify an observation and then take the
 \subsection{Random Forest for variable selection}
 \citet{Breiman01} showed that there are two ways the random forest algorithm can be modified to be used for variable selection. The first way is by random permutation. For each tree grown in the forest, classify the out-of-bag (OOB) observations and take the accuracy of the results. Then, for each predictor $x$, permute the variable values and reclassify the OOB observations. Compare the results to the initial accuracy. The most important variables are the ones that result in the greatest drop in accuracy
 
-When a predictor is split on the Gini index, the change in impurity, also called the purity, is calculated as follows. 
+When a predictor is split on the Gini index, the change in impurity, $\Delta\textbf{G}$, is calculated as follows. 
 
-\begin{equation}
-	\textbf{Purity}=G(m)-G(m')-G(m'')
+\begin{equation}\label{eqn:Delta Function}
+	\Delta=G(m)-\rho^L G(m^L)-\rho^R G(m^R) 
 \end{equation}
+\begin{equation}
+	\text{where } \rho^L = \frac{|m^L|}{|m|} \text{ and } \rho^R = \frac{|m^R|}{|m|}
+\end{equation}
+	
 
-$m'$ and $m''$ are the left and right split of the region $R_m$.
 
-The second method for variable selection uses this purity to get the most relevant variables. For each of the $x_i$, The overall purity is calculated by summing the purity gained from each split that was split by $x_i$. The most important variable are then the ones with the greatest purity. For the work done in this paper, we will focus on variable importance using the Gini purity method. 	
+
+$m^L$ and $m^R$ are the left and right split of the region $R_m$. 
+
+The second method for variable selection uses this purity to get the most relevant variables. For each of the $x_i$'s, The overall purity is calculated by summing the purity gained from each split that was split by $x_i$. The most important variable are then the ones with the greatest purity. For the work done in this paper, we will focus on variable importance using the Gini purity method. 	
 
 \section{Asymmetric Variable Selection}
-For binary classifying problems, variable selection such as the random forest variable selection methods will select variables that are apt at predicting both the positive and negative class. No consideration is given to the possibility that certain variables are better at predicting one side than the other. For instance, \cite{Bettis05} showed that exercising of employee stock options early is a sign for poor company performance but late exercise does not indicate superior performance. Thus earliness of option exercise cannot be used to predict if a firm will out-perform but earliness of exercise can be used to predict underperformance. If we are only interested in the results on one side, it would be better to have a variable selection algorithm that selects variables that are predictive on that side. 
+For binary classifying problems where $y\in (-1,+1)$, variable selection such as the random forest variable selection methods will select variables that are apt at predicting both the positive and negative class. No consideration is given to the possibility that certain variables are better at predicting one side than the other. For instance, \cite{Bettis05} showed that exercising of employee stock options early is a sign for poor company performance but late exercise does not indicate superior performance. Thus earliness of option exercise cannot be used to predict if a firm will out-perform but earliness of exercise can be used to predict underperformance. If we are only interested in the results on one side, it would be better to have a variable selection algorithm that selects variables that are predictive on that side. 
+
+We need a selection technique that modifies the tree algorithm such that there is a bias towards splits that result in nodes that are pure in class +1. This requires asymmetric treatment when splits result in nodes that are predicted -1 and nodes that are predicted +1. From equation \ref{eqn:Delta Function}, we see that $\Delta$ depends on the impurity function $G$, and $\rho$ which is the weight given to the $G$'s. Asymmetry is implemented by changing the purity function G such that it has a bias to one class. We can also achieve asymmetry by adjusting $\rho$ to be greater when the resulting class is +1. 
 
 For a binary problem, the Gini index is as follows
 \begin{equation}\label{eqn:giniindex}
-	G(m)=1-p_{m1}^2-(1-p_{m1})^2
+	G(m)=1-p_{m(+1)}^2-(1-p_{m(+1)})^2
 \end{equation}
 
-We propose a change to the Gini index as follows such that asymmetric classification can be made.
+We should like to modify the Gini as follows such that the resulting tree is more susceptable to splits that results in an increase in purity for class +1. 
 
-\begin{equation}\label{eqn:asymmetricginiindex}
-	G(m)=\min(1-p_{m1}^2-(1-p_{m1})^2, 1-p_{m1})
+\begin{equation}\label{eqn:asymmetricginiindex1}
+	aG1(m)=\min(1-p_{m(+1)}^2-(1-p_{m(+1)})^2, 1-p_{m(-1)})
 \end{equation}
 
-Figure \ref{Fig:Quantile Regression} shows the graph of both the regular Gini and the asymmetric Gini for a binary response variable.
+From the equation, if class +1 is the majority class, then the $aG1(m)$ will resemble a regular Gini index. Otherwise  $aG1(m)$ will be a straight line. Figure \ref{Fig:Quantile Regression} shows the graph of both the regular Gini and the asymmetric Gini for a binary response variable.
 
 \begin{figure}
  \centering
@@ -80,9 +101,41 @@ Figure \ref{Fig:Quantile Regression} shows the graph of both the regular Gini an
  \label{Fig:Quantile Regression}
 \end{figure}
 
- With an asymmetric purity function, we will then be able to grow trees that have leafs with higher purity for the positive class. We will then be able to explore the usefulness of variables for predicting a particular class by summing up the change in purity for each variable in all nodes in the forest. The most important variables for predicting the positive class will then be the ones with the greatest purity.
+We want the impurity change to be strictly convex when the majorty class from the split is +1 and linear when the majority class is -1. This ensures that for splits that result in the same increase of proportion for either class +1 or -1, the $\Delta$ when class +1 is the majority class will be higher than when class -1 is the majority class. We will then be able to grow trees that have leafs with higher purity for the +1 class and as the variable selection algorithm sums up all $\Delta$ caused by node splits from trees, a variable that is more capable at predicting class +1 will more likely have a higher score. 
 
-\section{Research Plan}
+We can take the idea of $aG1(m)$ a step further and ignore the impurity when the class is -1. Equation \ref{Eq:asymmetricginiindex2} shows how such a impurity function, $aG2(m)$ is calculated
+
+\begin{equation}\label{Eq:asymmetricginiindex2}
+aG2(m)=
+\begin{cases} 1-p_{+1}^2-(1-p_{+1})^2 & \text{ if} \operatorname{arg\,max} |m| = +1 
+\\ G(m_{parent})&\text{ otherwise}
+\end{cases}
+\end{equation}
+
+High $aG1(m)$ or $aG2(m)$ often times result in low $|m|$. This ultimately results in low $\rho$ that are associated with $m^{(+1)}$ and high $\rho^{(+1)}$ that are associated with the complement of $m^{(+1)}$. A solution to lower the magnitude different $\rho^{(+1)}$  and $\rho^{(-1)}$ would be to log the values of $|m|$ as follows
+\begin{equation}\label{eqn:rho_log}
+	\rho_{lg}^L = \frac{log(|m^L|)}{log(|m^L|)+log(|m^R|)}
+\end{equation}
+\begin{equation}
+	\rho_{lg}^R = \frac{log(|m^R|)}{log(|m^L|)+log(|m^R|)}
+\end{equation}
+
+
+Finally, another solution would be to square root the cardinality of the node that is classified as -1. This minimizes the impact of the information gain that is attributed to a child node that is classified as -1. Equation \ref{eqn:rho_sqrt} shows this.
+
+ \begin{equation}\label{eqn:rho_sqrt}
+	\rho_{sqrt}^L = \frac{|m^(+1)|}{|m^(+1)|+|m^(-1)|}
+\end{equation}
+\begin{equation}
+	\rho_{sqrt}^R = 1- \rho_{sqrt}^L
+\end{equation}
+
+\section{Methodology}
+In an effort to discover asymmetric variables, 
+
+
+
+\section{still to come}
 As asymmetric variable selection is sparsely documented in the data mining literature, we plan to engineer algorithms that are predictive in the class of interest. We plan to further explore how we can modify the random forest to provide for better outcomes in asymmetric variable selection. The modification of a random forest is currently in progress so that we can gain an asymmetric method that can be used for experiements. Simulated datasets that has variables that are predictive in both direction, predictive in only 1 direction, and not predictive at all will be used as tests to see if the modification works. After which, practical data will be used to test if the method is useful in real applications. The modified random forest will be tested against options exercise and sell data which is known to be asymmetric in nature and an evaluation of the results against other common methodologies such as those listed in \citet{Berk2011} will be done.
 
 
