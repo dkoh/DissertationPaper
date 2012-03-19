@@ -42,7 +42,8 @@ This paper presents a generalized loss function that allows for asymmetric learn
 
 The paper is organized as follows. Section \ref{motivation} presents the motivation of using an asymmetric loss function in the healthcare industry by presenting papers that would have been better off if asymmetric loss functions were introduced. Next, quantile regression is presented to establish the pinball loss function and how it is effective at optimizing losses asymmetrically. Section \ref{generalform} presents a generalized asymmetric loss function and integrates this into the SVM algorithm. Section \ref{simulation} illustrates how the generalized asymmetric loss function can be tuned to obtain different results with a simulated bi-variate normal distribution dataset. The remaining sections show how the generalized asymmetric SVM can be applied in the health care field by varying the parameters of the loss function to either obtain higher precision or higher hit rates of one class.
 
-\section{Motivation}\label{motivation}
+\section{Motivation and Background}
+\subsection{Motivation}\label{motivation}
  Machine learning learners generally focus on using symmetric loss functions in practical applications. However, for many of the applications, the objectives can benefit from an increase in precision of prediction. This is particularly useful in the medical field where the risks associated with misclassification is based on the misclassified prediction. For instance, which treatment gives a patient the highest probability of success, or which set of genes are most likely to cause cancer are examples of questions that would require the use of asymmetric loss as the risks of a FN and TN is different. Moreover, data obtained from the medical field often have disproportionate classes which makes it hard for many classifiers to learn to differentiate the data. 
 
 \citet{Liou08} published an article on detecting frauds and claims for diabetes. As there has been increasing claims for the illness the detection of fraud and abuse is an important task in cost savings. The false implication of fraud may bring forth lawsuits and consume resources and thus it would be prudent to identify cases which has a high probability of being fraudulent. The study uses nine expense related variables in various detection models that have previously been found useful in detecting fraudulent cases \citep{Yang06}. Logistic regression, neural network, and classification tree are used to predict fraud. As these classifiers are known to perform better if they are trained on an evenly balanced dataset, the paper uses an algorithm of resampling to yield a transformed dataset with equal observations for each class. The paper was able to predict fraud with much success using the C4.5 algorithm whereas logistic regression and neural network were not as accurate. The paper's objective of maximizing the number fraud prediction while minimizing false positives were not addressed directly by the methods employed. 
@@ -50,8 +51,6 @@ The paper is organized as follows. Section \ref{motivation} presents the motivat
 A lot of work have been done in the healthcare machine learning field to try and detect the differences in gene expressions between normal tissues and cancerous tissues \citep{Ambroise02}\citep{Guyon02}. These algorithms employed lack the risk aversion feature which would minimize situations where expressions that are not cancerous are wrongly classified as cancerous. \citet{Guyon02} analyzed DNA micro-array data to determine which genes are active in cancer tissues. The paper uses a method of variable selection known as Recursive Feature Selection where a support vector machine is trained and then analyzed to find the features that contributed the least weight to the model. Even though the results yield proved impressive, the methods employed do not take into account minimizing the FP and thus it would be beneficial to employ an asymmetric method to verify if the precision of prediction would improve.
 
 \citet{Huang05} considered the uneven dataset problem. The paper proposed using a weighted methodology for each training observation to mitigate the problem of the bias. The class with less observations is given more weight per observation. The weighted SVM technique was applied to the breast cancer diagnosis dataset available on the UCI database where only 10\% of the training data was classified as malignant. Although the classification of malignant class increased,  the precision did not improve over the regular SVM. \citet{Cohen03} tackled the same problem in the heathcare field but instead of using a weighted approach, the authors used an asymmetric margin where different penalties where assigned to classifying the wrong class. This method uses the pinball loss function to assign the different penalties. The method was applied to the identification of nosocomial infections from Geneva University Hospital. The training data had 10\% of the observations labeled as positive. The pinball loss employed was able to increase the accuracy of prediction by 5\% over the baseline of a regular SVM. In this paper we take the idea of asymmetric margins a step further by introducing a more general form of the pinball loss function to account for asymmetric data sets and noisy class boundaries. 
-
-
 
 \subsection{Quantile Regression}
 The pinball loss is not the only kind of asymmetric loss function in the literature. Other forms of asymmetric loss include Linex \citep{Demetrescu07} \citep{Ohtani95}, and ramp loss \citep{Takeuchi06}. However, the pinball loss resembles the loss function used in a support vector regression machine and thus it is more natural to generalize the loss function instead of force fitting the functions listed above. Let $(x_1,y_1),(x_2,y_2),...,(x_N,y_N)$ be the training data set. In least square regression, the conditional expectation of the target, $Y$, is used as the solution that minimizes the the expression $E[(Y-f(\mathbf{X}))^2]$ with results in the estimate of the mean. To minimize $E[(Y-f(\mathbf{X}))^-]$, least squares may not yield the optimal solution. For this problem, it is more important to find a good estimate of a $Y$ such that a proportion, $\theta$, of $X$ has labels $Y<y$. We should optimize the error of the quantile instead of that of the expected value in such cases. By denoting $y \in \mathbb{R}$ as random variable and $\theta \in (0,1)$, the $\theta$-quantile of y, denoted by $\mu_{\theta}$ is given by
@@ -156,24 +155,34 @@ f(x)=sign[\displaystyle\sum_{i=1}^N (\alpha_i - \alpha_i^*)K(\mathbf{x}_i,\mathb
 \end{equation}
 
 \subsection{Parameter Values for Asymmetric Parameters}
-Choosing asymmetric parameters depends on the users ultility of recall versus precision. Observing the second term of the objective function of equation \ref{Eq:QuantileSVMa}, we find the following relationship between $C$, $\rho_1$, and $\rho_2$. It is trivial to show that $C$ can be thought of as the magnitude of penalization and the $\rho$'s being the proportion of $C$ that is assign to each side of the loss. Thus we can assume the general constraint for $\rho_1$ and $\rho_2$.
+Choosing asymmetric parameters depends on the users utility of recall versus precision. If heavy penalization is assigned to a class, that class will be predicted less by the ASVM and the predictions will be more precise. For example, increasing the precision of the class + means reducing the magnitude of $\rho_1$ and increasing the magnitude of $\epsilon_1$. As we reduce $\rho_2$ and increase $\epsilon_1$, we will eventually achieve an ASVM that predicts class - for all cases. Conversely, by increasing $\rho_1$ and $epsilon_1$, we will eventually get an ASVM that predicts class + for all cases. We are only interested in the range of values where the ASVM is able to predict both classes. We call the range of these values the range of operability 
+
+ Before we find the range of operability for the $\rho$'s, we need to establish a relationship between $C$, $\rho_1$, and $\rho_2$ by observing the second term of the objective function of equation \ref{Eq:QuantileSVMa}. It is trivial to show that $C$ is the magnitude of penalization and the $\rho$'s being the proportion of $C$ that is assign to each side of the loss. Thus we can assume the general constraint for $\rho_1$ and $\rho_2$.
 
 \begin{equation}\label{rho constraint}
 \rho_1 + \rho_2 =1; \rho_1,\rho_2 \geq 0
 \end{equation}
 
-The constraints are not necessary tight constraints. If the $\rho$'s are set at close to 0 or 1, the asymmetric SVM may not be able to differentiate between a positive and negative class as it will either predict all observation as negative or positive. A range of operability for $\rho_1$ can be discovered via the training dataset as $\rho_1^{(max)}$ and $\rho_1^{(min)}$. To do so , we set $\rho_1$ close to 0 to train the SVM. We should observe that the predicted values are undifferentiated (i.e. all predicted values are the same). We increase $\rho_1$ by an appropriate step size, retrain, and analyze the output again to check if there is differentiation. $\rho_1^{(min)}$ is the value when there is differentiation between the predicted values. A similar diagnostic can be conducted to find $\rho_1^{(max)}$. Discovering the range of operability of $\rho_1$ also gives us the range of operability of $\rho_2$ by equation \ref{rho constraint}.
+The range of operability for $\rho_1$ involves the finding $\rho_1^{(max)}$ and $\rho_1^{(min)}$. To do so , we set $\rho_1$ close to 0 to train the SVM. We should observe that the predicted values are undifferentiated (i.e. all predicted values are the same). We increase $\rho_1$ by an appropriate step size, retrain, and analyze the output again to check if there is differentiation. $\rho_1^{(min)}$ is the min value when there is differentiation between the predicted values. A similar diagnostic can be conducted to find $\rho_1^{(max)}$. Discovering the range of operability of $\rho_1$ also gives us the range of operability of $\rho_2$ by equation \ref{rho constraint}.
 
-The $\epsilon$'s are less dependent on each other. The higher an $\epsilon$ is, the less penalization will occur on that respective side. However, to accommdate asymmetry, $\epsilon_1 \neq \epsilon_2$. We can implement an accounting for this by using the following constraint.
+The $\epsilon$'s are less dependent on each other. The higher an $\epsilon$ is, the less penalization will occur on that respective side. However, to accommodate asymmetry, we set $\epsilon_1 \neq \epsilon_2$. We can implement an accounting for this by using the following constraint.
 
 \begin{equation}\label{epsilon constraint}
 \epsilon_1 + \epsilon_2=k \\
 \text{, } k \geq 0
 \end{equation}
 
-\section{Extensions to ASVM}
-From Figure \ref{Fig:General Loss}, we see the that $\rho$ penalizes a wrong observation linearly based on the distance of the observation to the hyperplane where as $\epsilon$ penalizes data points the same independent of how far the data points are from the hyperplane. As these two parameters affect the final ASVM differently, we can, instead of training with both parameters simultaneously, train two separate ASVM, one for each parameter. By training two separate ASVMs, one that has $\rho$ optimized for positive precision, and one that has $\epsilon$ optimized for positive precision, we can then classify an observation as positive only if both ASVMs classified that observation as positive. We call such an ensemble paired ASVM (pASVM). pASVM can also be adjusted such that it can manage the imbalance data set problem. We can modify pASVM such that an observation is classified positive if either of the ASVMs classified the class as positive. 
+The range of operability can also be achieved in a similar fashion of that of the $\rho$'s. s
 
+By knowing the range of operability, it is then up to the user to decide the trade-off they want between precision and recall. Such a problem, which is not discussed in the research, can be thought of as the following equation. 
+
+\begin{equation}\label{eqn:asymmetryutility}
+ \max_{C,\epsilon_1,\epsilon_2,\rho_1,\rho_2,} \alpha(\text{Precision}) + \beta(\text{Recall})
+ \end{equation}
+
+
+\subsection{Extensions to ASVM}
+From Figure \ref{Fig:General Loss}, we see the that $\rho$ penalizes a wrong observation linearly based on the distance of the observation to the hyperplane where as $\epsilon$ penalizes data points the same independent of how far the data points are from the hyperplane. As these two parameters affect the final ASVM differently, we can, instead of training with both parameters simultaneously, train two separate ASVM, one for each parameter. By training two separate ASVMs, one that has $\rho$ optimized for positive precision, and one that has $\epsilon$ optimized for positive precision, we can then classify an observation as positive only if both ASVMs classified that observation as positive. We call such an ensemble paired ASVM (pASVM). pASVM can also be adjusted such that it can manage the imbalance data set problem. We can modify pASVM such that an observation is classified positive if either of the ASVMs classified the class as positive. 
 
 A further extension would be to introduce a quad ASVM (qASVM). Up to this point we cared only about the precision for classifying one of the classes and thus have trained separate ASVMs for the positive class and negative class and have ignored the possibility that an observation can be classified both as positive and negative by the positive trained ASVM and negative trained ASVM simultaneously. We want to ensure that a data point $X_i$ is not classified as both positive with the positive ASVM and negative with the negative ASVM but that both ASVMs agree on its classification. The synergy of both a positive and negative precision optimized ASVM can potentially provide better precision when predicting both classes. With qASVM, four ASVMs are trained. Each of the four have one of the four parameters, $\rho_1,\rho_2,\epsilon_1,\epsilon_2$, optimized. This results in 2 ASVMs that are optimized for positive class precision and 2 ASVMs that are optimized for negative class precision. To classify we apply the following.
 \begin{equation}
@@ -199,8 +208,8 @@ Changing the values of $\epsilon_1$ and $\epsilon_2$ yield similar results. When
 \begin{tabular}{rrrr|cccccc}
 
 \hline
- \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Positive & Negative \\
-    &&&&&&&&  Precision &  Precision \\
+ \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} \\
+    &&&&&&&&  (+) &  (-) \\
 
 \hline
 \hline
@@ -241,33 +250,65 @@ To show how asymmetric SVM can be applied to the healthcare industry, the statlo
 
           
 
+
+% Table generated by Excel2LaTeX from sheet 'Finalresults1'
 \begin{table}[htbp]\label{table:HeartDisease1}
   \centering
-    \begin{tabular}{rrrr|cccccccc}
+    \begin{tabular}{rrrrr|rrrrrrrr}
     \hline
-    \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Precision & Recall & Precision & Recall\\
-    &&&&&&&&  (+) &  (+) &  (-) &  (-) \bigstrut\\
+    &\multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
+    &&&&&&&&&  (+) &  (-) &  (+) &  (-) \bigstrut\\
     \hline
     \hline
-   \multicolumn{4}{c|}{Regular SVM} & 18    & 6     & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut[t]\\
-    0.2   & 0.8   & 0     & 0     & 3     & 21    & 1     & 29    & 0.883 & 0.139 & 0.587 & 0.980 \bigstrut[t]\\
-    0.3   & 0.7   & 0.0   & 0.0   & 9     & 15    & 1     & 29    & 0.878 & 0.375 & 0.657 & 0.953 \\
-    0.4   & 0.6   & 0.0   & 0.0   & 14    & 10    & 2     & 28    & 0.874 & 0.572 & 0.733 & 0.927 \\
-    0.5   & 0.5   & 0.0   & 0.0   & 18    & 6     & 5     & 25    & 0.811 & 0.741 & 0.804 & 0.843 \\
-    0.6   & 0.4   & 0.0   & 0.0   & 20    & 4     & 9     & 21    & 0.698 & 0.851 & 0.842 & 0.686 \\
-    0.7   & 0.3   & 0.0   & 0.0   & 22    & 2     & 14    & 16    & 0.619 & 0.919 & 0.882 & 0.545 \\
-    0.8   & 0.2   & 0.0   & 0.0   & 23    & 1     & 19    & 11    & 0.551 & 0.960 & 0.917 & 0.374 \\
-    0.5   & 0.5   & 0.5   & 0.0   & 14    & 10    & 2     & 28    & 0.872 & 0.589 & 0.737 & 0.919 \\
-    0.5   & 0.5   & 1.0   & 0.0   & 5     & 19    & 0     & 30    & 0.935 & 0.201 & 0.606 & 0.987 \\
-    0.5   & 0.5   & 0.0   & 0.5   & 21    & 3     & 9     & 21    & 0.721 & 0.859 & 0.852 & 0.711 \\
-    0.5   & 0.5   & 0.0   & 1.0   & 24    & 0     & 21    & 9     & 0.532 & 0.985 & 0.943 & 0.304 \\
-    0.3   & 0.7   & 0.5   & 0.0   & 8     & 16    & 1     & 29    & 0.924 & 0.315 & 0.640 & 0.965 \\
-    0.7   & 0.3   & 0.0   & 0.5   & 23    & 1     & 15    & 15    & 0.605 & 0.960 & 0.933 & 0.495 \bigstrut[b]\\
+    \multicolumn{1}{c}{Regular SVM} &       &       &       &       & 18    & 6     & 5     & 25    & 0.80  & 0.82  & 0.77  & 0.83 \bigstrut\\
+    \hline
+    \multicolumn{1}{c}{\multirow{13}{*}{ASVM}} & 0.2   & 0.8   & 0     & 0     & 3     & 21    & 1     & 29    & 0.88  & 0.59  & 0.14  & 0.98 \bigstrut[t]\\
+    \multicolumn{1}{c}{} & 0.3   & 0.7   & 0.0   & 0.0   & 9     & 15    & 1     & 29    & 0.88  & 0.66  & 0.37  & 0.95 \\
+    \multicolumn{1}{c}{} & 0.4   & 0.6   & 0.0   & 0.0   & 14    & 10    & 2     & 28    & 0.87  & 0.73  & 0.57  & 0.93 \\
+    \multicolumn{1}{c}{} & 0.5   & 0.5   & 0.0   & 0.0   & 18    & 6     & 5     & 25    & 0.81  & 0.80  & 0.74  & 0.84 \\
+    \multicolumn{1}{c}{} & 0.6   & 0.4   & 0.0   & 0.0   & 20    & 4     & 9     & 21    & 0.70  & 0.84  & 0.85  & 0.69 \\
+    \multicolumn{1}{c}{} & 0.7   & 0.3   & 0.0   & 0.0   & 22    & 2     & 14    & 16    & 0.62  & 0.88  & 0.92  & 0.55 \\
+    \multicolumn{1}{c}{} & 0.8   & 0.2   & 0.0   & 0.0   & 23    & 1     & 19    & 11    & 0.55  & 0.92  & 0.96  & 0.37 \\
+    \multicolumn{1}{c}{} & 0.5   & 0.5   & 0.5   & 0.0   & 14    & 10    & 2     & 28    & 0.87  & 0.74  & 0.59  & 0.92 \\
+    \multicolumn{1}{c}{} & 0.5   & 0.5   & 1.0   & 0.0   & 5     & 19    & 0     & 30    & 0.94  & 0.61  & 0.20  & 0.99 \\
+    \multicolumn{1}{c}{} & 0.5   & 0.5   & 0.0   & 0.5   & 21    & 3     & 9     & 21    & 0.72  & 0.85  & 0.86  & 0.71 \\
+    \multicolumn{1}{c}{} & 0.5   & 0.5   & 0.0   & 1.0   & 24    & 0     & 21    & 9     & 0.53  & 0.94  & 0.99  & 0.30 \\
+    \multicolumn{1}{c}{} & 0.3   & 0.7   & 0.5   & 0.0   & 8     & 16    & 1     & 29    & 0.92  & 0.64  & 0.32  & 0.96 \\
+    \multicolumn{1}{c}{} & 0.7   & 0.3   & 0.0   & 0.5   & 23    & 1     & 15    & 15    & 0.60  & 0.93  & 0.96  & 0.50 \bigstrut[b]\\
     \hline
     \hline
     \end{tabular}%
-    \caption{Results from a five fold cross-validation on heart disease data. The left columns show the parameter values that were chosen. The results are formed from the average of the 5 fold cross-validation. (+) represents the positive class and (-) represents the negative class}
+  \caption{Results from a five fold cross-validation on heart disease data. The left columns show the parameter values that were chosen. The results are formed from the average of the 5 fold cross-validation. (+) represents the positive class and (-) represents the negative class}
 \end{table}%
+
+
+% \begin{table}[htbp]\label{table:HeartDisease1}
+%   \centering
+%     \begin{tabular}{rrrrr|cccccccc}
+%     \hline
+%     \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
+%     &&&&&&&&  (+) &  (+) &  (-) &  (-) \bigstrut\\
+%     \hline
+%     \hline
+%    \multicolumn{4}{c|}{Regular SVM} & 18    & 6     & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut[t]\\
+%     0.2   & 0.8   & 0     & 0     & 3     & 21    & 1     & 29    & 0.883 & 0.139 & 0.587 & 0.980 \bigstrut[t]\\
+%     0.3   & 0.7   & 0.0   & 0.0   & 9     & 15    & 1     & 29    & 0.878 & 0.375 & 0.657 & 0.953 \\
+%     0.4   & 0.6   & 0.0   & 0.0   & 14    & 10    & 2     & 28    & 0.874 & 0.572 & 0.733 & 0.927 \\
+%     0.5   & 0.5   & 0.0   & 0.0   & 18    & 6     & 5     & 25    & 0.811 & 0.741 & 0.804 & 0.843 \\
+%     0.6   & 0.4   & 0.0   & 0.0   & 20    & 4     & 9     & 21    & 0.698 & 0.851 & 0.842 & 0.686 \\
+%     0.7   & 0.3   & 0.0   & 0.0   & 22    & 2     & 14    & 16    & 0.619 & 0.919 & 0.882 & 0.545 \\
+%     0.8   & 0.2   & 0.0   & 0.0   & 23    & 1     & 19    & 11    & 0.551 & 0.960 & 0.917 & 0.374 \\
+%     0.5   & 0.5   & 0.5   & 0.0   & 14    & 10    & 2     & 28    & 0.872 & 0.589 & 0.737 & 0.919 \\
+%     0.5   & 0.5   & 1.0   & 0.0   & 5     & 19    & 0     & 30    & 0.935 & 0.201 & 0.606 & 0.987 \\
+%     0.5   & 0.5   & 0.0   & 0.5   & 21    & 3     & 9     & 21    & 0.721 & 0.859 & 0.852 & 0.711 \\
+%     0.5   & 0.5   & 0.0   & 1.0   & 24    & 0     & 21    & 9     & 0.532 & 0.985 & 0.943 & 0.304 \\
+%     0.3   & 0.7   & 0.5   & 0.0   & 8     & 16    & 1     & 29    & 0.924 & 0.315 & 0.640 & 0.965 \\
+%     0.7   & 0.3   & 0.0   & 0.5   & 23    & 1     & 15    & 15    & 0.605 & 0.960 & 0.933 & 0.495 \bigstrut[b]\\
+%     \hline
+%     \hline
+%     \end{tabular}%
+%     \caption{Results from a five fold cross-validation on heart disease data. The left columns show the parameter values that were chosen. The results are formed from the average of the 5 fold cross-validation. (+) represents the positive class and (-) represents the negative class}
+% \end{table}%
 
 
 The precision of the positive class compared to the median SVM improved from 0.81 to 0.88 as we decrease the value of $\rho_1$ and the precision of the negative class improved from 0.80 to 0.92 when we increased the value of $\rho_1$. Improvement in positive class precision was also achieved by adjusting $\epsilon_1$ to 1 which resulted in a 0.12 increase in precision. The negative class precision increased when we increased the value of $\epsilon_2$ to 0.94. 
@@ -282,21 +323,21 @@ An alternative to adjusting both the $\rho$ and $\epsilon$ parameters in a singl
 % Table generated by Excel2LaTeX from sheet 'Finalresults2'
 \begin{table}[htbp]\label{table:HeartDisease2}
   \centering
-    \begin{tabular}{rrrr|cccccccc}
+    \begin{tabular}{rrrrr|rrrrrrrr}
     \hline
-        \multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Precision & Recall & Precision & Recall\\
-    &&&&&&&&  (+) &  (+) &  (-) &  (-) \bigstrut\\
+    &\multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
+    &&&&&&&&&  (+) &  (-) &  (+) &  (-) \bigstrut\\
     \hline
     \hline
-   \multicolumn{4}{c|}{Regular SVM} & 18    & 6     & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut\\
-    \hline
-    0.5   & 0.5   & 0     & 0     & 17.6  & 6.4   & 4.6   & 25.4  & 0.811 & 0.741 & 0.804 & 0.843 \bigstrut\\
-    \hline
-    0.2   & 0.8   & 0     & 0     & 3.0   & 18.8  & 0.4   & 29.4  & 0.900 & 0.123 & 0.610 & 0.980 \bigstrut[t]\\
-    0.5   & 0.5   & 1     & 0     &       &       &       &       &       &       &       &  \bigstrut[b]\\
-    \hline
-    0.8   & 0.2   & 0     & 0     & 22.8  & 0.2   & 16.4  & 6.6   & 0.586 & 0.952 & 0.967 & 0.221 \bigstrut[t]\\
-    0.5   & 0.5   & 0     & 1     &       &       &       &       &       &       &       &  \bigstrut[b]\\
+ Regular SVM &       &       &       &       & 18.4  & 5.6   & 5.0   & 25.0  & 0.802 & 0.820 & 0.769 & 0.830 \bigstrut\\
+\hline
+Median SVM & 0.5   & 0.5   & 0     & 0     & 17.6  & 6.4   & 4.6   & 25.4  & 0.811 & 0.804 & 0.741 & 0.843 \bigstrut\\
+\hline
+pASVM & 0.2   & 0.8   & 0     & 0     & 3.0   & 18.8  & 0.4   & 29.4  & 0.900 & 0.610 & 0.123 & 0.980 \bigstrut[t]\\
+(+)   & 0.5   & 0.5   & 1     & 0     &       &       &       &       &       &       &       &  \bigstrut[b]\\
+\hline
+pASVM & 0.8   & 0.2   & 0     & 0     & 22.8  & 0.2   & 16.4  & 6.6   & 0.586 & 0.967 & 0.952 & 0.221 \bigstrut[t]\\
+(-)   & 0.5   & 0.5   & 0     & 1     &       &       &       &       &       &       &       &  \bigstrut[b]\\
     \hline
     \hline
     \end{tabular}%
@@ -310,13 +351,13 @@ Finally, we apply qASVM to the data to see if we can achieve an symmetric learne
   \centering
     \begin{tabular}{rrrrrrrrr}
     \hline
-       & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & Positive & Positive & Negative & Negative\\
-&&&&&  Precision &  Recall &  Precision &  Recall \bigstrut\\
+       & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
+&&&&&  (+) &  (-) &  (+) &  (-) \bigstrut\\
     \hline
     \hline
-    Regular SVM & 18.4  & 5.6   & 5     & 25    & 0.802 & 0.769 & 0.820 & 0.830 \bigstrut[t]\\
-    Median SVM & 17.6  & 6.4   & 4.6   & 25.4  & 0.811 & 0.741 & 0.804 & 0.843 \\
-    qASVM & 9.0   & 2.0   & 1.4   & 16.4  & 0.878 & 0.375 & 0.882 & 0.545 \bigstrut[b]\\
+   Regular SVM & 18.4  & 5.6   & 5     & 25    & 0.802 & 0.820 & 0.769 & 0.830 \bigstrut[t]\\
+Median SVM & 17.6  & 6.4   & 4.6   & 25.4  & 0.811 & 0.804 & 0.741 & 0.843 \\
+qASVM & 9.0   & 2.0   & 1.4   & 16.4  & 0.878 & 0.882 & 0.375 & 0.545 \bigstrut[b]\\
     \hline
     \hline
     \end{tabular}%
@@ -331,23 +372,20 @@ To show how having an asymmetric loss function can be useful in classifying data
 \begin{table}[htp]
 \centering
 % Table generated by Excel2LaTeX from sheet 'BloodTemplate'
-\begin{tabular}{rrrr|rr}
+\begin{tabular}{rrrrr|rr}
 \hline
-$\rho_1$ & $\rho_2$ & $\epsilon_1$ & $\epsilon_2$ & Precision & TP \bigstrut\\
+&$\rho_1$ & $\rho_2$ & $\epsilon_1$ & $\epsilon_2$ & Precision & TP \bigstrut\\
 \hline
 \hline
- \multicolumn{4}{c|}{Regular SVM}     & 0.379 & 4 \bigstrut\\
+ Regular SVM &&&&&     0.379 & 4 \bigstrut\\
 \hline
-0.5   & 0.5   & 0     & 0     & 0.806 & 2 \bigstrut\\
+\multirow{4}{*}{ASVM} & 0.5   & 0.5   & 0     & 0     & 0.806 & 2 \bigstrut\\
+&0.7   & 0.3   & 0     & 0     & 0.411 & 4 \bigstrut\\
+&0.5   & 0.5   & 0     & 0.5   & 0.379 & 4 \bigstrut\\
+&0.6   & 0.4   & 0     & 0.4   & 0.409 & 4 \bigstrut\\
 \hline
-0.7   & 0.3   & 0     & 0     & 0.411 & 4 \bigstrut\\
-\hline
-0.5   & 0.5   & 0     & 0.5   & 0.379 & 4 \bigstrut\\
-\hline
-0.6   & 0.4   & 0     & 0.4   & 0.409 & 4 \bigstrut\\
-\hline
-0.75  & 0.25  & 0     & 0     & 0.392 & 9 \bigstrut[t]\\
-0.5   & 0.5   & 0     & 0.7   &       &  \bigstrut[b]\\
+\multirow{2}{*}{pASVM} & 0.75  & 0.25  & 0     & 0     & 0.392 & 9 \bigstrut[t]\\
+&0.5   & 0.5   & 0     & 0.7   &       &  \bigstrut[b]\\
 \hline
 \hline
 \end{tabular}%
@@ -360,11 +398,7 @@ As the objective is to increase the number of cases predicted positive while mai
 \section{Conclusion and Future Work}
  This paper explores the use of a generalized asymmetric loss function to achieve asymmetric loss and applies this loss function to SVM for classification problems. As an extension of the pinball loss function that is found in quantile regression, the generalized loss function is flexible enough to not only set different penalization standards for FP and FN, it is able to allow for the adjustment of an  $\epsilon$-sensitive tube. This generalized loss function serves two different purposes: training classifiers when there is imbalanced data, and optimizing accuracy for a class of interest. This technique is useful in a variety of applications and the paper has shown that it is particularly beneficial in health care. In applying the method to heart disease where there are obvious advantages to doctors and insurance companies in finding a subset of patients with high or low risk of getting a heart disease, it was shown that the use of the loss function proposed in this paper improved the precision of the positive and negative class from that of the regular SVM. The trade off for the increase in accuracy came at the cost of a reduced number of observations being classified as the class that is being optimized. The use of blood transfusion data on the proposed loss function illustrate the benefits of using asymmetry to increase the number of observations classified as positive for an imbalanced dataset. 
 
- As the experiments presented served as examples to show how a change in the loss function could potentially improve the performance of accuracy and increase the number of classified observations, they do not present the optimized abilities of such loss functions. Much improvements can be achieved if a search is done to find a combination of the hyper-parameters of the kernel, $\epsilon$, $\rho$, and the penalizing parameter \emph{C}, through cross validation. More importantly, using an asymmetric loss function requires the decision of the trade-off between the number of instances classified and accuracy. The general problem
- \begin{equation}
- \max_{C,\epsilon_1,\epsilon_2,\rho_1,\rho_2,} \alpha(\text{Precision}) + \beta(\text{Recall})
- \end{equation}
-could be further formalized and optimized by discovering the relationship between precision and classified instances and letting the user decide values of $\alpha$ and $\beta$. Finally, even though the paper has demonstrated the marginal benefit gained in the medical field by using asymmetric loss, the use of such methodology can serve a useful purpose in other disciplines and applications.
+ As the experiments presented served as examples to show how a change in the loss function could potentially improve the performance of accuracy and increase the number of classified observations, they do not present the optimized abilities of such loss functions. Much improvements can be achieved if a search is done to find a combination of the hyper-parameters of the kernel, $\epsilon$, $\rho$, and the penalizing parameter \emph{C}, through cross validation. More importantly, using an asymmetric loss function requires the decision of the trade-off between the number of instances classified and accuracy. The general problem  presented in \ref{eqn:asymmetryutility} could be further formalized and optimized by discovering the relationship between precision and classified instances and letting the user decide values of $\alpha$ and $\beta$. Finally, even though the paper has demonstrated the marginal benefit gained in the medical field by using asymmetric loss, the use of such methodology can serve a useful purpose in other disciplines and applications.
 
 \bibliography{bibliography}
 \end{document}
