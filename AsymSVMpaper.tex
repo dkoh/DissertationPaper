@@ -40,7 +40,7 @@ In many healthcare problems, the cost of misclassifying can be different. For in
 
 The most common data mining techniques are trained to make predictions by minimizing the error rate. These techniques possess a loss function that penalizes errors by being impartial to whether the error is a false-positive (FP) or a false-negative (FN). There are a class of problems where the optimization of errors are focused solely on the ability to identify a positive class accurately. For such problems, the ability to obtain true-positives (TP) is more important than obtaining a true-negative (TN). For instance, the lawsuit that ensues from an FP of wrongly accusing a patient of medical fraud is more punitive than the FN of allowing the fraud to happen \citep{Liou08}. It is more important to identify a fraud case with high probability then to identify a large number of fraud cases. Such problems are better handled by optimizing the precision, defined as $(TP)/(TP+FP)$, instead of the maximizing both TP and TN simultaneously.
 
-This paper presents a generalized loss function that allows for asymmetric learning to occur. Not only would a generalized loss function result in better precision, it can also be applied to a common phenomena in many datasets where the training data has much more observations for one class. The imbalance dataset problem has often been mitigated in the literature with the utilization of an asymmetric resampling methodology \citep{Hamed04}. This paper attempts to tackle the challenges of precision optimization and the imbalance dataset problem by substituting the conventional hinge loss in support vector machines (SVM) with a generalized asymmetric loss function. This allows us to make adjustments to parameters that will either improve precision and/or increase recall. Allowing for different parameter values to be applied to the SVM algorithm such that an over prediction would have a different penalizing weight than that of an under prediction of the same magnitude, the generalized asymmetric loss presented is an extension of the pinball loss function \citet{Koenker01} used in quantile regression \citep{Steinwart07}. The pinball loss is not the only kind of asymmetric loss function in the literature. Other forms of asymmetric loss include Linex \citep{Demetrescu07} \citep{Ohtani95}, and ramp loss \citep{Takeuchi06}. Of these loss functions, the pinball loss resembles closest to the loss function in a support vector regression machine and thus it is more natural to generalize the loss function instead of force fitting the functions listed above. With this asymmetric penalization, the SVM can be trained to be more selective in classifying a positive class to reduce the probability of a FP. It can also be used as alternative to the resampling approach of unbalanced datasets by allowing for greater penalization for the majority class when training an SVM. This would be an advantage over the resampling methodology as it maintains the integrity of the original data.
+This paper presents a generalized loss function that allows for asymmetric learning to occur. Not only would a generalized loss function result in better precision, it can also be applied to a common phenomena in many datasets where the training data has much more observations for one class. The imbalance dataset problem has often been mitigated in the literature with the utilization of an asymmetric resampling methodology \citep{Hamed04}. This paper attempts to tackle the challenges of precision optimization and the imbalance dataset problem by substituting the conventional hinge loss in support vector machines (SVM) with a generalized asymmetric loss function. This allows us to make adjustments to parameters that will either improve precision and/or increase recall. Allowing for different parameter values to be applied to the SVM algorithm such that an over prediction would have a different penalizing weight than that of an under prediction of the same magnitude, the generalized asymmetric loss presented is an extension of the pinball loss function \citet{Koenker01} used in quantile regression \citep{Steinwart07}. The pinball loss is not the only kind of asymmetric loss function in the literature. Other forms of asymmetric loss include Linex \citep{Demetrescu07} \citep{Ohtani95}, and ramp loss \citep{Takeuchi06}. Linex consists of a non-linear portion within the function which when applied to SVM will not guarantee a sparse solution. The ramp loss penalizes all extreme data points equally and thus discounts their influence in the model. The pinball loss not only resembles closest to the loss function in a support vector regression machine making it more natural to use, but it is linear in all regions which provides a sparse solution and it accommodates to extreme data points. With this asymmetric penalization, the SVM can be trained to be more selective in classifying a positive class to reduce the probability of a FP. It can also be used as alternative to the resampling approach of unbalanced datasets by allowing for greater penalization for the majority class when training an SVM. This would be an advantage over the resampling methodology as it maintains the integrity of the original data.
 
 The paper is organized as follows. Section \ref{motivation} presents the motivation of using an asymmetric loss function in the healthcare industry by presenting papers that would have been better off if asymmetric loss functions were introduced. Next, quantile regression is presented to establish the pinball loss function and how it is effective at optimizing losses asymmetrically. Section \ref{generalform} presents a generalized asymmetric loss function and integrates this into the SVM algorithm. Section \ref{simulation} illustrates how the generalized asymmetric loss function can be tuned to obtain different results with a simulated bi-variate normal distribution dataset. The remaining sections show how the generalized asymmetric SVM can be applied in the health care field by varying the parameters of the loss function to either obtain higher precision or higher hit rates of one class.
 
@@ -54,19 +54,19 @@ A lot of work have been done in the healthcare machine learning field to try and
 
 The uneven dataset problem is often addressed by manipulating the training data. \citet{Liou08} resampled its training data to produce a training dataset where the classes are even. \citet{Huang05} managed the uneven dataset problem by using a weighted methodology for each training observation to mitigate the problem of the bias. The class with less observations is given more weight per observation. The weighted SVM technique was applied to the breast cancer diagnosis dataset available on the UCI database where only 10\% of the training data was classified as malignant. Although the classification of malignant class increased, the precision did not improve over the regular SVM. \citet{Cohen03} tackled the same problem in the heathcare field but instead of using a weighted approach, the authors used an asymmetric margin where different penalties where assigned to classifying the wrong class. The method was applied to the identification of nosocomial infections from Geneva University Hospital where the training data had 10\% of the observations labeled as positive. The pinball loss employed was able to increase the accuracy of prediction by 5\% over the baseline of a regular SVM. In this paper we take the idea of \citet{Cohen03} use of asymmetric margins a step further by introducing a more general form of the pinball loss function to account for asymmetric data sets and noisy class boundaries. 
 
-\subsection{Quantile Regression}
+\subsection{Quantile Regression and Pinball Loss}
 In least square regression, the conditional expectation of the target, $Y$, is used as the solution that minimizes the error which is $E[(Y-f(\mathbf{X}))^2]$. This results in the estimate of the mean. We can decompose the problem as follows
 \begin{equation}
- E[(Y-f(\mathbf{X}))^2]= E[((Y-f(\mathbf{X}))^-)^2]P(Y<f(\mathbf{X}))+E[((Y-f(\mathbf{X}))^+)^2]P(Y \geq f(\mathbf{X}))
+ E[(Y-f(\mathbf{X}))^2]= E[(Y-f(\mathbf{X}))^2|Y<f(\mathbf{X})]P(Y<f(\mathbf{X}))+E[(Y-f(\mathbf{X}))^2|Y \geq f(\mathbf{X})]P(Y \geq f(\mathbf{X}))
 \end{equation}
 
-where the superscripts + and - denote $Y \geq f(\mathbf{X})$ and $Y < f(\mathbf{X})$ respectively. To minimize $E[(Y-f(\mathbf{X}))^-]$, least squares may not yield the optimal solution. In this case, it is more important to find a $y$ such that a proportion, $\theta$, of $Y$ has labels $Y<y$. The solution to this problem results in the $\theta$-quantile of $Y$ which we denote as $\mu_{\theta}$. We find $\mu_{\theta}$ by the following equation
+To minimize $E[(Y-f(\mathbf{X}))^2|Y<f(\mathbf{X})]$, least squares may not yield the optimal solution. In this case, it is more important to find a $y$ such that a proportion, $\theta$, of $Y$ has labels $Y<y$. The solution to this problem results in the $\theta$-quantile of $Y$ which we denote as $\mu_{\theta}$. We find $\mu_{\theta}$ by the following equation
  \begin{equation}
- \inf_{\mu}P(Y\leq \mu)=\theta
+ \mu_{\theta}=\operatorname{arg\,min}_{\mu}[P(Y\leq \mu)=\theta]
  \end{equation}
-When $\theta = 0.5$ the median is achieved. Let $(x_1,y_1),(x_2,y_2),...,(x_N,y_N)$ be the training data set. The conditional quantile $\mu_{\theta}(\mathbf{x})$ for a pair of random variables $(x,y) \in \mathbb{R}$ is defined as the function $\mu_{\theta}(\mathbf{x}) $ where the point $\mu_{\theta}$ is the solution to.
+When $\theta = 0.5$ the median is achieved. The conditional quantile $\mu_{\theta}(\mathbf{x})$ for a pair of random variables $(X,Y) \in \mathbb{R}$ is defined as the function $\mu_{\theta}(\mathbf{x}) $ where the point $\mu_{\theta}$ is the solution to.
  \begin{equation}
- \inf_{\mu}P(Y\leq \mu|\mathbf{x})=\theta
+\mu_{\theta}(\mathbf{x})=\operatorname{arg\,min}_{\mu}[P(Y\leq \mu)=\theta|\mathbf{x}]
  \end{equation}
 The basic strategy to obtain quantile estimates arises from the observation that minimizing the L1-loss function for a location estimator yields the median \citep{Hao07}. Denoting an indicator function as $I(\cdot)$, observe that to minimize the following expression
 \begin{equation}\label{Eq:median minimize}
@@ -82,7 +82,7 @@ l_{\theta}=
 \end{cases}
 \end{equation}
 
-The number of observations with $y_i < \mu_{\theta}$ is bounded from above by $N\theta$ and the number of terms with $y_i > \mu_{\theta}$ is bounded from below by $N(1-\theta)$. This condition ensures that as $N$ approaches infinity, the number of terms below $\mu_{\theta}$ to the total number of terms converges to $\theta$. Minimizing Equation \ref{Eq:pinball} with $\theta=0.5$ results in Equation \ref{Eq:median minimize}. Linear optimization programs such as CPLEX can be used to solve the minimization problem. A simulated Sine wave dataset with noise was simulated and Figure \ref{Fig:Quantile Regression} gives a graphical example of quantile regression for different values of $\theta$ estimated from the data. Quantile regression using support vector regression was studied by \citet{Changha05} and has been successfully applied to linear and non-linear data. However little focus is given to the modification of the loss function for classification or even the generalization of such functions. As such functions are apt in asymmetric problems and imbalance data set problems, it is worthwhile to find a generalization to such functions when applied SVM so that better results can be achieved. 
+The number of observations with $y_i < \mu_{\theta}$ is bounded from above by $N\theta$ and the number of terms with $y_i > \mu_{\theta}$ is bounded from below by $N(1-\theta)$. This condition ensures that as $N$ approaches infinity, the number of terms below $\mu_{\theta}$ to the total number of terms converges to $\theta$. Minimizing Equation \ref{Eq:pinball} with $\theta=0.5$ results in the expression Equation \ref{Eq:median minimize}. Linear optimization programs such as CPLEX can be used to solve the minimization problem. A simulated Sine wave dataset with noise was simulated and Figure \ref{Fig:Quantile Regression} gives a graphical example of quantile regression for different values of $\theta$ estimated from the data. Quantile regression using support vector regression was studied by \citet{Changha05} and has been successfully applied to linear and non-linear data. However little focus is given to the modification of the loss function for classification or even the generalization of such functions. As such functions are apt in asymmetric problems and imbalance data set problems, it is worthwhile to find a generalization to such functions when applied SVM so that better results can be achieved. 
 
 \begin{figure}
  \centering
@@ -204,22 +204,10 @@ A further extension would be to introduce a quad ASVM (qASVM). Up to this point 
 
 The qASVM is able to predict both classes with high precision and as a result is a symmetric predictor unlike the pASVM and ASVM. When we apply qASVM for prediction, we obtain a neutral class (class 0) as one of its outputs. We label any observation in this class as observations that we cannot predict. We want our predictions to be accurate and so we want to have an output to denote observations that we have no confidence in classifying.
 
-% \section{Experiments}
-\section{Asymmetric Loss SVM on Simulated Data}\label{simulation}
-Simulated data was fabricated to test the effectiveness of the asymmetric loss SVM. We simulated two bivariate normal distributions, one for the positive class and one for the negative class, on a two dimensional plane. A total of 400 observations were simulated for this experiement. As a control for ASVM, a regular SVM by \citet{Vapnik98} and a median ASVM where $\rho_1=\rho_2=0.5$ and $\epsilon_1=\epsilon_2=0$ were used as a benchmark and control respectively. The parameters, $\sigma$, for the Gaussian kernel and the penalizing parameter C were held constant throughout the experiments at a value of 1 so as to show the marginal improvements that are achieved by adjusting the parameters of the loss function. We performed a five fold cross-validation and made predictions on the outsample for each fold. 10 replicates are done in total and the average results were tallied. The algorithm for conducting the experiments is found in Algorithm \ref{experimentAlgorithm}.
-\begin{algorithm}
-\For{$r=1 \text{ to } 10$}{
-	Assign the data randomly into $K$ folds where $k=1,2,...,K$\\
-	\For{Each of the $K$ folds}{
-		set $\text{fold}_k$ as outsample and the rest of the data as insample\\
-		Train learner $f(\cdot)$ on the insample\\
-		Find $\hat{y}=f(\mathbf{x}) \text{   }\forall \mathbf{x} \in \text{fold}_k$
-	}
-	Calculate $\text{TP}_r,\text{FP}_r,\text{TN}_r,\text{FN}_r,\text{Precision}_r, \text{Recall}_r$ 
-}
-Find average of $\text{TP}_r,\text{FP}_r,\text{TN}_r,\text{FN}_r,\text{Precision}_r, \text{Recall}_r$ for $r=1 \text{ to } 10$
-\caption{Experiment Algorithm}\label{experimentAlgorithm}
-\end{algorithm}
+\section{Experiments}
+\subsection{Asymmetric Loss SVM on Simulated Data}\label{simulation}
+Simulated data was fabricated to test the effectiveness of the asymmetric loss SVM. We simulated two bivariate normal distributions, one for the positive class and one for the negative class, on a two dimensional plane. A total of 400 observations were simulated for this experiement. As a control for ASVM, a regular SVM by \citet{Vapnik98} and a median ASVM where $\rho_1=\rho_2=0.5$ and $\epsilon_1=\epsilon_2=0$ were used as a benchmark and control respectively. The parameters, $\sigma$, for the Gaussian kernel and the penalizing parameter C were held constant throughout the experiments at a value of 1 so as to show the marginal improvements that are achieved by adjusting the parameters of the loss function. We performed a five fold cross-validation and made predictions on the outsample for each fold. 10 replicates are done in total and the average results were tallied. 
+
  For this experiment, $\rho_1$ was adjusted to 0.4 and then 0.6 to make the model more prone to classifying a positive and positive class respectively. To show how the $\epsilon$-sensitive tube parameters ($\epsilon_1$ and $\epsilon_2$) can obtain better accuracy than that of the median SVM, each of the $\epsilon$'s was set to 1 and the other was set to 0. The trained SVMs utilize the Gaussian kernel function. 
 
 The heat map in Figure \ref{fig:edge} show the classification space of the SVMs for one of the replicates. The light regions represent positive prediction while the darker regions represent negative prediction. The pluses (+) and the zeros (o) represents the training data of the positive and negative classes, respectively. From the results shown in Table \ref{simulatedsvmtable}, the median ASVM differs very little from the regular SVM. By adjusting $\rho_1$ to 0.4, the precision of positive classification increases. In the other direction, when $\rho_1$ was adjusted to 0.6, the ASVM becomes more precise at identifying the negative class, with the precision increasing from 0.601 to 0.746. Comparing Figure \ref{Fig:quantilesvm40} with Figure \ref{Fig:quantilesvm60}, a distinct change in area boundaries for classification can be observed. When $\rho_1=0.4$, there is a larger area in the space of the x's where a point can be classified as a negative class. Changing $\rho_2$ to 0.6 decreases this area resulting in lesser area being classified as the negative class as well as improving the precision for negative classification.
@@ -228,7 +216,7 @@ Changing the values of $\epsilon_1$ and $\epsilon_2$ yield similar results. When
 
 \begin{table}[htp]\label{simulatedsvmtable}
 
-    \tiny\begin{tabular}{rrrrr|rrrrrrrr}
+    \small\begin{tabular}{rrrrr|rrrrrrrr}
     \hline
     &\multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
     &&&&&&&&&  $(+)$ &  $(-)$ &  $(+)$ &  $(-)$ \bigstrut\\
@@ -263,8 +251,8 @@ SVM &       &       &       &       & 167   & 33    & 37    & 163   & 0.82(0.01)
 
 
 
-\section{Quantile SVM on Heart Disease Data}\label{Heartdiseasesection}
-To show how asymmetric SVM can be applied to the healthcare industry, the statlog heart dataset obtained from the UCI website was used \citep{Frank10}. The data consists of 270 observations of patients who may or may not have heart disease. The assign those observations that have heart disease as the positive class and those that do not as the negative class. There are 13 different attributes that range from age and sex, to maximum heart rate and fasting blood sugar. Understanding the probability of having heart disease can be beneficial to health care providers and patients. By using an SVM that predicts with high accuracy either class, we are able to classify, with high confidence, a subset of patients who have heart disease and the highest probability of not having heart disease. To assess the performance of the method, A regular SVM and a median SVM were used to establish a benchmark and a baseline for how asymmetric learning can add value. The experiment was conducted by applying Algorithm \ref{experimentAlgorithm} for each of the learners. The results for various parameter values of the asymmetric SVM are shown in Table \ref{table:HeartDisease1}. 
+\subsection{Quantile SVM on Heart Disease Data}\label{Heartdiseasesection}
+To show how asymmetric SVM can be applied to the healthcare industry, the statlog heart dataset obtained from the UCI website was used \citep{Frank10}. The data consists of 270 observations of patients who may or may not have heart disease. The assign those observations that have heart disease as the positive class and those that do not as the negative class. There are 13 different attributes that range from age and sex, to maximum heart rate and fasting blood sugar. Understanding the probability of having heart disease can be beneficial to health care providers and patients. By using an SVM that predicts with high accuracy either class, we are able to classify, with high confidence, a subset of patients who have heart disease and the highest probability of not having heart disease. To assess the performance of the method, A regular SVM and a median SVM were used to establish a benchmark and a baseline for how asymmetric learning can add value. 10 replicates of five-fold crossvalidations were conducted for each of the learners. The results for various parameter values of the asymmetric SVM are shown in Table \ref{table:HeartDisease1}. 
 
           
 
@@ -272,7 +260,7 @@ To show how asymmetric SVM can be applied to the healthcare industry, the statlo
 % Table generated by Excel2LaTeX from sheet 'Finalresults1'
 \begin{table}[htp]
   \centering
-    \tiny\begin{tabular}{rrrrr|rrrrrrrr}
+    \small\begin{tabular}{rrrrr|rrrrrrrr}
     \hline
     &\multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
     &&&&&&&&&  $(+)$ &  $(-)$ &  $(+)$ &  $(-)$ \bigstrut\\
@@ -297,7 +285,7 @@ SVM &       &       &       &       & 90    & 30    & 26    & 124   & 0.78(0.01)
 \hline
 \hline
     \end{tabular}%
-  \caption{The table shows the results of the heart disease data set when evaluated by Algorithm \ref{experimentAlgorithm}. The values are the average for 10 replicates of the five fold cross-validation. Standard deviations are shown in the parenthesis.
+  \caption{The table shows the results of the heart disease data set when evaluated by 10 replicates of a five-fold cross-validation for each learner. The values are the average of the replicates. Standard deviations are shown in the parenthesis.
   }
 \end{table}\label{table:HeartDisease1}
 
@@ -313,7 +301,7 @@ An alternative to adjusting both the $\rho$ and $\epsilon$ parameters in a singl
 % Table generated by Excel2LaTeX from sheet 'Finalresults2'
 \begin{table}[htbp]\label{table:HeartDisease2}
   \centering
-    \tiny\begin{tabular}{rrrrr|rrrrrrrr}
+    \small\begin{tabular}{rrrrr|rrrrrrrr}
     \hline
     &\multirow{2}{*}{$\rho_1$} & \multirow{2}{*}{$\rho_2$} & \multirow{2}{*}{$\epsilon_1$} & \multirow{2}{*}{$\epsilon_2$} & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
     &&&&&&&&&  $(+)$ &  $(-)$ &  $(+)$ &  $(-)$ \bigstrut\\
@@ -332,14 +320,14 @@ $(-)$   & 0.5   & 0.5   & 0     & 1     &       &       &       &       &       
 \hline
 \hline
     \end{tabular}%
-    \caption{Asymmetric paired SVM results (pASVM). The first 2 rows show the results for a regular and median SVM. The remaining rows have 2 sets of parameters that are for the two ASVMs in the pASVM. The values, which are the output of Algorithm \ref{experimentAlgorithm}, are the average for 10 replicates of the five fold cross-validation. Standard deviations are shown in the parenthesis.}
+    \caption{Asymmetric paired SVM results (pASVM). The first 2 rows show the results for a regular and median SVM. The remaining rows have 2 sets of parameters that are for the two ASVMs in the pASVM. The values, which are the average for 10 replicates of the five-fold cross-validation. Standard deviations are shown in the parenthesis.}
 \end{table}%
 Finally, we apply qASVM to the data to see if we can achieve an symmetric learner that has optimized the precision for predicting both the positive and negative class. Table \ref{table:HeartDisease3} shows the performance of the results for this qASVM. The precision for the combined voting method was 0.88 for the positive class and 0.88 for the negative class. Thus the method shows improvement in both classes from the baseline of the median SVM.
 
 % Table generated by Excel2LaTeX from sheet 'Finalresults3'
 \begin{table}[htbp]\label{table:HeartDisease3}
   \centering
-    \tiny\begin{tabular}{rrrrrrrrr}
+    \small\begin{tabular}{rrrrrrrrr}
     \hline
        & \multirow{2}{*}{TP}    & \multirow{2}{*}{FN}    & \multirow{2}{*}{FP}    & \multirow{2}{*}{TN} & \multicolumn{2}{c}{Precision} & \multicolumn{2}{c}{Recall}\\
 &&&&&  $(+)$ &  $(-)$ &  $(+)$ &  $(-)$ \bigstrut\\
@@ -351,31 +339,30 @@ qSVM  & 45.5  & 10.8  & 6.8   & 83.5  & 0.87(0.03) & 0.89(0.01) & 0.38(0.03) & 0
 \hline
 \hline
     \end{tabular}%
-    \caption{Results for the qASVM compared against the regular and median SVM. The values, which are the output of Algorithm \ref{experimentAlgorithm}, are the average for 10 replicates of the five fold cross-validation. Standard deviations are shown in the parenthesis.}
+    \caption{Results for the qASVM compared against the regular and median SVM. The values are the average for 10 replicates of the five-fold cross-validation. Standard deviations are shown in the parenthesis.}
 \end{table}%
 
 
-\section{Quantile SVM on Blood Transfusion Data}
+\subsection{ASVM on Class Imbalance Problem}
 To show how having an asymmetric loss function can be useful in classifying data with uneven classes, a dataset retrieved from the Blood Transfusion Service Center in Hsin-Chu City in Taiwan was used \citep{Yeh09}. The set has five predictor variables that were used to classify whether or not a person will donate blood. The dataset, consisting of 748 observations, has only 23\% of rows that are in the positive class (donated blood). This presents the problem of an unbalanced class dataset, a problem that is common in medical data. Typically for such problems, using a standard SVM would often result in all the data being classified as negative. It is thus beneficial to apply ASVM to penalize classifying a FP less so as to increase the number of observations being classified as positive. This change to the loss function while increasing the observations of positive classification could reduce the accuracy of the observations classified positive. The predictor variables are first standardized to mean 0 and standard deviation 1 on the full dataset to prevent the dominance of variables with high magnitude. Like the heart disease data, the parameter of the kernel and penalizing parameter \emph{C} were held constant at 1. To try and recreate the testing scenario of \citet{Yeh09} paper where 500 observations were randomly picked to be insample and the remainder to be outsample, a three folds cross-validation was used as the number of folds for approximating the number of in and out sample for each run. A three fold cross-validation results in each fold having approximately 499 insample observations, which is close to the number of insample observations used in \citet{Yeh09}. Thus a 3 fold cross-validation was conducted and the results are presented in Table \ref{bloodtransfusion}.
 
 
 \begin{table}[htp]
 \centering
 % Table generated by Excel2LaTeX from sheet 'BloodTemplate'
-\begin{tabular}{rrrrr|rr}
+\small\begin{tabular}{rrrrr|rr}
 \hline
 &$\rho_1$ & $\rho_2$ & $\epsilon_1$ & $\epsilon_2$ & Precision & TP \bigstrut\\
 \hline
 \hline
- Regular SVM &&&&&     0.379 & 4 \bigstrut\\
+SVM &       &       &       &       &       & 0.40(0.05) \bigstrut[t]\\
+ASVM  & 0.5   & 0.5   & 0     & 0     & 4     & 0.64(0.23) \\
+      & 0.7   & 0.3   & 0     & 0     & 10    & 0.41(0.13) \\
+      & 0.5   & 0.5   & 0     & 0.5   & 13    & 0.43(0.09) \\
+      & 0.6   & 0.4   & 0     & 0.7   & 26    & 0.37(0.04) \bigstrut[b]\\
 \hline
-\multirow{4}{*}{ASVM} & 0.5   & 0.5   & 0     & 0     & 0.806 & 2 \bigstrut\\
-&0.7   & 0.3   & 0     & 0     & 0.411 & 4 \bigstrut\\
-&0.5   & 0.5   & 0     & 0.5   & 0.379 & 4 \bigstrut\\
-&0.6   & 0.4   & 0     & 0.4   & 0.409 & 4 \bigstrut\\
-\hline
-\multirow{2}{*}{pASVM} & 0.75  & 0.25  & 0     & 0     & 0.392 & 9 \bigstrut[t]\\
-&0.5   & 0.5   & 0     & 0.7   &       &  \bigstrut[b]\\
+pASVM & 0.75  & 0.25  & 0     & 0     & 12    & 0.4(0.04) \bigstrut[t]\\
+      & 0.5   & 0.5   & 0     & 0.7   &       &  \bigstrut[b]\\
 \hline
 \hline
 \end{tabular}%
