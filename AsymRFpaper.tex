@@ -32,20 +32,19 @@
 The increase use of machine learning has drove up the need to find relevant features to reduce dimensionality and improve model prediction. Irrelevant features may hinder the learner and result in poor prediction. Thus there is a need to focus on learning from only the important features. Discerning the right features to use may differ between applications. Consider the problem of yielding high precision in prediction made in the literature \citep{Masnadi11}. Learners are trained to be cost sensitive such that only the class of interest is optimized. This could be from increasing the precision of detecting fraud, to having a high confidence in medical diagnosis. Finding features that will provide high precision in the prediction model can only result in a better model. This work attempts to find asymmetric features that are apt at predicting the class of interest but not necessarily apt at predicting the other classes. Such featuers can be found by modifying the random forest variable selection algorithm such that features that are apt at differentiating the class of interest are picked. 
 
 \section{Background}
-Feature selection is an important part of machine learning as it provides a subset of variables that are useful for prediction. Separating the variables that are noise from those that habor information about the response will ultimately result in a better trained learner that produces a lower error rate. As asymmetric problems are concerned with the problem of predicting one response with higher precision, one can revamp the focus of variable selection such that we choose variables that are most capable in predicting a specified response value.
+Feature selection is an important part of machine learning as it provides a subset of variables that are useful for prediction. Separating the variables that are noise from those that habor information about the response will ultimately result in a better trained learner that produces a lower error rate. As asymmetric problems are concerned with the problem of predicting the response with higher precision, one can revamp the focus of variable selection such that we choose variables that are most capable in predicting a specified response value.
 
-In asymmetry, we do not need the variable to be apt at predicting all values of the response, only the specific value that we want to focus on. Let $y \in (-1,1)$, we have a model $f(\mathbf{x})=y$ where $\mathbf{x} = (x_1,x_2,...,x_p)$ and $p \in P$. We would like to find a set of $x$ where $x \in \mathbf{x} \in \mathcal{X}$ such that $\displaystyle\max_{\mathbf{x}}P(y=1,f(\mathbf{x})=1)$. Finding variables that maximizes the function $\displaystyle\max_{\mathbf{x}}P(y=f(\mathbf{x}))$ has been widely studied in the literature and is the basis for most variable selection algorithm. 
+In asymmetry learning we do not need the variable to be apt at predicting all values of the response, only the specific value that we want to focus on. Let $y \in (-1,1)$, we have a model $f(\mathbf{x})=y$ where $\mathbf{x} = (x_1,x_2,...,x_p)$ and $p \in P$. Finding variables that maximizes the function $\displaystyle\max_{\mathbf{x}}P(y=f(\mathbf{x}))$ has been widely studied in the literature and is the basis for most variable selection algorithm. However, such an objective function seeks features are will aid the learner in predicting all values of $Y$ instead of just a specific value $Y=y$. We would like to find a set of $\mathbf{x}$ where $\mathbf{x} \in \mathcal{X}$ such that $\displaystyle\max_{\mathbf{x}}P(y=1,f(\mathbf{x})=1)$. 
 
-There are three main ways the variable selection is conducted \citep{Saeys07} : filter, wrapper, embedded. The filter selection techniques assesses the intrinsic properties of the predictor and assigns a score. The variables with the best scores are the picked. The simplest filters come in the form of t-stat or ANOVA  \citep{Jafari06}. Correlation based feature selection (CFS) is a method that picks variables with high correlation to the dependent variable and low correlation to the other independent variables \citep{Hall99}. Similar to CFS is the minimum Redundancy Maximum Relevance Feature Selection (mRMR) which is based on the concept of gathering a subset of independent variables that are highly predictive of the dependent variable and highly dissimilar with other independent variables \citep{Ding03}. Markov blanket filter builds a Markov blanket that contains a minimal subset of relevant features that yields optimal classification \citep{Zeng09}. 
+There are three main ways the variable selection is conducted \citep{Saeys07} : filter, wrapper, embedded. The filter selection techniques assesses the intrinsic properties of the predictor and assigns a score. The variables with the best scores are the picked. The simplest filters come in the form of t-stat or ANOVA  \citep{Jafari06}. Wrappers utilize a learning algorithm as a black box to score subsets of variable according to their predictive power. The wrapper methodology was popularized by \citet{Kohavi96} and is a simple and powerful way to address the problem of variable selection, regardless of the chosen algorithm. Some popular known wrapper algorithms include sequential forward and backward selection \citep{Kittler78}, simulated annealing\citep{Kirkpatrick83}, and randomized hill climbing \citep{Skalak94}. For embedded methods, the search for a best subset of features is built into the classifier construction, and can be seen as a search in the combined space of feature subsets and hypotheses. This process may be more efficient in several respects. First, it makes use of the available data by not needing to split the training data into a training and validation set. Second, it reaches a solution faster by avoiding retraining a predictor from scratch for every variable subset investigated. Embedded methods are not new: decision trees such as CART \citep{Breiman84}, for instance, have a built-in mechanism to perform variable selection. Random forest is an algorithm that is widely used in the literature as an embedded system for variable selection \citep{Diaz06}\citep{Jiang04}.
 
-Wrappers utilize a learning algorithm as a black box to score subsets of variable according to their predictive power. The wrapper methodology was popularized by \citet{Kohavi96} and is a simple and powerful way to address the problem of variable selection, regardless of the chosen algorithm. Some popular known wrapper algorithms include sequential forward and backward selection \citep{Kittler78}, zimulated annealing\citep{Kirkpatrick83}, randomized hill climbing \citep{Skalak94}, genetic algorithms \citep{Holland75}, and estimation of distribution algorithms (EDA) \citep{Blanco04}. Sequential forward and backward selection uses regression as the learner to decide the best subset of variables that are relevant. Simulated annealing, randomized hill climbing and genetic algorithms both use some form of randomness to find a subset of variables that are pertinent for model prediction. The estimation of distribution algorithm is a general version of the genetic algorithm. When iterating a genetic algorithm to find the best subsets, equal priors are placed on each of the variables in the current subset. In EDA, the priors are updated and represents a probability distribution of the variable's pertinence. 
-
-For embedded methods, the search for a best subset of features is built into the classifier construction, and can be seen as a search in the combined space of feature subsets and hypotheses. This process may be more efficient in several respects. First, it makes use of the available data by not needing to split the training data into a training and validation set. Second, it reaches a solution faster by avoiding retraining a predictor from scratch for every variable subset investigated. Embedded methods are not new: decision trees such as CART \citep{Breiman84}, for instance, have a built-in mechanism to perform variable selection. Random forest is an algorithm that is widely used in the literature as an embedded system for variable selection \citep{Diaz06}\citep{Jiang04}. A variant of SVM known as SVM with recursive feature selection is an SVM method that has an embedded feature selection technique \citep{Guyon02}. Finally \citet{Ma05} tweaks the logistic regression method to produce an embedded method that eliminates variables with small weights.
-
+\subsection{Asymmetric Variables}
 A review of the methods in the literature failed to shed light on finding variables that are particularly good at asymmetric prediction. Asymmetric variables appear to be an area that has not been widely studied. However, asymmetric variables appear to be prevalent in the literature. \citet{Matzler04} did a regression analysis to find out what attributes lead to better overall customer satisfaction. They showed that for variables of complaint handling, project management, and innovativeness, when the performance is low, there is a significant effect on overall satisfaction. However, when these same variables showed high performance, the effect on overall satisfaction is insignificant. \citet{Froyen97} studied whether political pressures add significant explanatory power in monetary policy. They found that in white house administrations that pressure the Federal Reserve to tighten monetary policy results in higher interest rates whereas in white house administrations that promote loose monetary policy does not affect the interest rates. Finally \citet{Karras97} identified money-supply shocks and their effects on output for a panel of 18 European countries and found that many different specifications and estimation methods strongly support asymmetry: negative money-supply shocks are shown to have a statistically significant effect on output, whereas the effect of positive shocks is statistically insignificant. 
 
+Asymmetric variables appear to be widespread throughout many applications. However, there  has not been any specific methodology in the literature that optimizes seeking these variables out. Thus having a variable selection technique that is catered towards finding features that posses information about a particular response value will benefit the motivation of the above mentioned papers. 
+
 \section{Loss functions in trees}
-For this research, we will be focusing on modifying the random forest algorithm by \citet{Breiman01}. But before we discuss how the random forest algorithm works, it is worth while to discuss the precursor to the random forest algorithm. We will be looking specifically at the CART algorithm by \citet{Breiman84}. In general, the algorithm by \citet{Breiman84} proposed divides the predictor space by recursively splitting the data. Each splitting rule splits the space into two separate regions $R_i$ and $R_j$, $i \neq j$. Each region $R_m,m \in M$ is called a node. Each rule forms a decision boundary, and a leaf node is the final partition after all the rules are enforced. The classification of data is done at the leaf node by the following loss function for a regression tree
+For this research, we will be focusing on modifying the random forest algorithm by \citet{Breiman01}. Before we discuss how the random forest algorithm works, it is worth while to discuss the precursor to the random forest algorithm. We will be looking specifically at the CART algorithm by \citet{Breiman84}. In general, the algorithm by \citet{Breiman84} proposed divides the predictor space by recursively splitting the data. Each splitting rule splits the space into two separate regions $R_i$ and $R_j$, $i \neq j$. Each region $R_m,m \in M$ is called a node. Each rule forms a decision boundary, and a leaf node is the final partition after all the rules are enforced. The classification of data is done at the leaf node by the following loss function for a regression tree
 
 \begin{equation}
 	\begin{array}{rcl}
@@ -105,22 +104,22 @@ $m^L$ and $m^R$ are the left and right split of the region $R_m$. , $|\cdot|$ re
 The second method for variable selection uses this purity to get the most relevant variables. For each of the $x_i$'s, The overall purity is calculated by summing the purity gained from each split that was split by $x_i$. The most important variable are then the ones with the greatest purity. For the work done in this paper, we will focus on variable importance using the Gini purity method. 	
 
 \section{Asymmetric Variable Selection}
-For binary classifying problems where $y\in (-,+)$, variable selection such as the random forest variable selection methods will select variables that are apt at predicting both the positive and negative class. No consideration is given to the possibility that certain variables are better at predicting one side than the other. For instance, \cite{Bettis05} showed that exercising of employee stock options early is a sign for poor company performance but late exercise does not indicate superior performance. Thus earliness of option exercise cannot be used to predict if a firm will out-perform but earliness of exercise can be used to predict underperformance. If we are only interested in the results on one side, it would be better to have a variable selection algorithm that selects variables that are predictive on that side. 
+For binary classifying problems where $y\in (-,+)$, variable selection such as the random forest variable selection methods will select variables that are apt at predicting both the positive and negative class. No consideration is given to the possibility that certain variables are better at predicting one side than the other. For instance, \cite{Bettis05} showed that exercising of employee stock options early is a sign for poor company performance but late exercise does not indicate superior performance. Thus earliness of option exercise cannot be used to predict if a firm will out-perform but earliness of exercise can be used to predict under-performance. If we are only interested in the results on one side, it would be better to have a variable selection algorithm that selects variables that are predictive on that side. 
 
-We need a selection technique that modifies the tree algorithm such that there is a bias towards splits that result in nodes that are pure in class +. This requires asymmetric treatment when splits result in nodes that are predicted - and nodes that are predicted +. From equation \ref{eqn:Delta Function}, we see that $\mathcal{IG}(\cdot)$ depends on the impurity function $G$, and $\rho$ which is the weight given to the $G$'s. Asymmetry is implemented by changing the purity function G such that it has a bias to one class. We can also achieve asymmetry by adjusting $\rho$ to be greater when the resulting class is +. 
+We need a selection technique that modifies the tree algorithm such that there is a bias towards splits that result in nodes that are pure in class +. This requires asymmetric treatment when splits result in nodes that are predicted $-$ and nodes that are predicted $+$. From equation \ref{eqn:Delta Function}, we see that $\mathcal{IG}(\cdot)$ depends on the impurity function $G(\cdot)$, and $\rho$ which is the weight given to the $G(\cdot)$'s. Asymmetry is implemented by changing the impurity function $G(\cdot)$ such that it has a bias to one class. We can also achieve asymmetry by adjusting $\rho$ to be greater when the resulting class is $+$. 
 
 For a binary problem, the Gini index is as follows
 \begin{equation}\label{eqn:giniindex}
-	G(m)=1-p_{m(+)}^2-(1-p_{m(+)})^2
+	G(m)=1-p_{m+}^2-(1-p_{m+})^2
 \end{equation}
 
-We should like to modify the Gini as follows such that the resulting tree is more susceptable to splits that results in an increase in purity for class +. 
+We modify the Gini as follows such that the resulting tree is more susceptible to splits that results in an increase in purity for class +. 
 
 \begin{equation}\label{eqn:asymmetricginiindex1}
-	aG1(m)=\min(1-p_{m(+)}^2-(1-p_{m(+)})^2, 1-p_{m(-)})
+	aG1(m)=\min(1-p_{m-}^2-(1-p_{m-})^2, 1-p_{m(+)})
 \end{equation}
 
-From the equation, if class + is the majority class, then the $aG1(m)$ will resemble a regular Gini index. Otherwise  $aG1(m)$ will be a straight line. Figure \ref{Fig:Quantile Regression} shows the graph of both the regular Gini and the asymmetric Gini for a binary response variable.
+From the equation, if class $-$ is the majority class, then the $aG1(m)$ will yield the same as a regular Gini index. Otherwise  $aG1(m)$ will be a straight line. Figure \ref{Fig:Quantile Regression} shows the graph of both the regular Gini and the asymmetric Gini for a binary response variable.
 
 \begin{figure}
  \centering
@@ -129,7 +128,7 @@ From the equation, if class + is the majority class, then the $aG1(m)$ will rese
  \label{Fig:Quantile Regression}
 \end{figure}
 
-We want the impurity change to be strictly convex when the majorty class from the split is + and linear when the majority class is -. This ensures that for splits that result in the same increase of proportion for either class + or -, the $\mathcal{IG}$ when class + is the majority class will be higher than when class - is the majority class. We will then be able to grow trees that have leafs with higher purity for the + class and as the variable selection algorithm sums up all $\mathcal{IG}$ caused by node splits from trees, a variable that is more capable at predicting class + will more likely have a higher score. 
+We want the impurity change to be strictly convex when the majority class from the split is $-$ and linear when the majority class is $+$. This ensures that for splits that result in the same increase of proportion for either class + or -, the $\mathcal{IG}$ when class $-$ is the majority class will be higher than when class $+$ is the majority class. We will then be able to grow trees that have leafs with higher purity for the $+$ class and as the variable selection algorithm sums up all $\mathcal{IG}$ caused by node splits from trees, a variable that is more capable at predicting class $+$ will more likely have a higher score. 
 
 We can take the idea of $aG1(m)$ a step further and ignore the impurity when the class is -1. Equation \ref{Eq:asymmetricginiindex2} shows how such a impurity function, $aG2(m)$ is calculated
 
@@ -140,7 +139,7 @@ aG2(m)=
 \end{cases}
 \end{equation}
 
-High $aG1(m)$ or $aG2(m)$ often times result in low $|m|$. This ultimately results in low $\rho$ that are associated with $m^{(+)}$ and high $\rho^{(+)}$ that are associated with the complement of $m^{(+)}$. A solution to lower the magnitude different $\rho^{(+)}$  and $\rho^{(-)}$ would be to log the values of $|m|$ as follows
+High $aG1(m)$ or $aG2(m)$ often times result in low $|m|$. This ultimately leads to a low $\rho^{+}$, which is the weight when the respective child node predicts class $+$. Consequently, a high $\rho^{-}$ value associated with the complement node will result. A solution to increase the relative magnitude of $\rho^{+}$ to $\rho^{-}$ would be to log the values of $|m|$ as follows
 \begin{equation}\label{eqn:rho_log}
 	\rho_{lg}^L = \frac{log(|m^L|)}{log(|m^L|)+log(|m^R|)}
 \end{equation}
@@ -149,7 +148,7 @@ High $aG1(m)$ or $aG2(m)$ often times result in low $|m|$. This ultimately resul
 \end{equation}
 
 
-Finally, another solution would be to ignore the information gain from nodes that predict class $-$. This can be done by as follows
+Going a step further, another solution would be to ignore the information gain from nodes that predicts class $-$. This can be done by as follows
 
 \begin{equation}
 	\rho_{bin} = \begin{cases} 1 & \text{ if} \operatorname{arg\,max} y_m = + 
@@ -158,16 +157,15 @@ Finally, another solution would be to ignore the information gain from nodes tha
 \end{equation}
 
 \section{Methodology}
-To pick variables, the asymmetric random forest algorithm is as follows.
-
-\begin{algorithm}
+To test the efficacy of random forest asymmetric feature selection, we employ the Algorithm \ref{varsectalgor} which is the algorithm used to select features in a random forest. 
+\begin{algorithm}\label{varsectalgor}
 Let the number of training cases be $N$, and the number of variables in the classifier be $M$.
 \For{each tree}{
 Obtain a bootstrap sample of the training data of size $N$.\\
 Pick $m$ variables at random from $M$ for use to determine the best split at each node of the tree.\\
 	\While{$\mathcal{IG}(\cdot) >0$ }{
 		\For{each m}{
-			calulate $\mathcal{IG}(m)$
+			calculate $\mathcal{IG}(m)$
 		}
 		pick the $m$ with the highest $\mathcal{IG}$ as the splitting node\\
 		Split into 2 sub nodes.\\
@@ -188,78 +186,143 @@ Rank the tallied variables in descending order
 \caption{Asymmetric Random Forest Variable Selection}\label{algo: AsymRandomForest}
 \end{algorithm}
 
+In the algorithm, we modify $\mathcal{IG}(m)$ by either changing $\rho$ or the impurity function, $G(\cdot)$, to their asymmetric counterparts previously mentioned. The results yield should then be bias towards obtaining features that possess information on classifying class $+$.
+
 \section{Experiment}
-\subsection{Asymmetric Forest on Simulated Asymmetetric Features}
-In an effort to discover asymmetric variables we simulated features with varying precision. The features are binary variables and the response is coded as - and + to indicate the negative and positive class. In total we simulated 30 features: 1 symmetric feature, 6 asymmetric features with high precision on class + and 6 asymmetric features with high precision on class -. Feature 1 has high precision for both the positive and negative class and is most predictive. Feature 2 to 7 have precision for class + higher than that of class - and feature 8 to 13 has the converse. The rest of the features are noise variables. In an ideal sitation, the asymmetric random forest will pick only the variables that have high precision in the positive class (feature 1 to feature 7). Table \ref{tab:asymmetricfeatures1} shows these features and their precisions for each of the classes.
+\subsection{Asymmetric Forest on Simulated Asymmetric Features}
+In an effort to discover asymmetric variables we simulated features with varying precision. The features are binary variables and the response is coded as $-$ and $+$ to indicate the negative and positive class. In total we simulated 30 features: 1 symmetric feature, 6 asymmetric features with high precision on class + (class $+$ features) and 6 asymmetric features with high precision on class $-$ (class $-$ features).  Feature 1 has high precision for both the positive and negative class. Feature 2 to 7 have precision for class + higher than that of class - and feature 8 to 13 has the converse. The rest of the features are noise variables. In an ideal situation, the asymmetric random forest will pick only the variables that have high precision in the positive class (feature 1 to feature 7). Table \ref{tab:asymmetricfeatures1} shows these features and their precisions for each of the classes.
 
 
 % Table generated by Excel2LaTeX from sheet 'Sheet2'
 \begin{table}[htbp]
   \centering
-  \caption{Add caption}
-    \begin{tabular}{rrr}
-    \hline
-    Feature & Precision (Class +) & Precision (Class -) \bigstrut\\
-    \hline
-    1     & 0.9   & 0.89 \bigstrut[t]\\
-    2     & 0.83  & 0.53 \\
-    3     & 0.84  & 0.64 \\
-    4     & 0.72  & 0.62 \\
-    5     & 0.75  & 0.66 \\
-    6     & 0.63  & 0.59 \\
-    7     & 0.56  & 0.55 \\
-    8     & 0.53  & 0.82 \\
-    9     & 0.65  & 0.84 \\
-    10    & 0.61  & 0.7 \\
-    11    & 0.66  & 0.75 \\
-    12    & 0.6   & 0.64 \\
-    13    & 0.54  & 0.55 \\
-    14-30 & 0.5   & 0.5 \bigstrut[b]\\
-    \hline
-    \end{tabular}%
+  \caption{Simulated Features for Asymmetric Variable Selection. Feature 2 to Feature 7 is the complement of Feature 8 to Feature 13 respectively. For each complement feature the precisions are switched between class + and class -.}
+ \begin{tabular}{p{1.5cm}p{1.5cm}p{1.7cm}p{1.7cm}}
+\hline
+      & Feature & Precision (Class $+$) & Precision (Class $-$) \bigstrut\\
+\hline
+Symmetric Feature & 1     & 0.9   & 0.89 \bigstrut\\
+\hline
+\multirow{6}{1.5cm}{Class $+$ Features} & 2     & 0.83  & 0.53 \bigstrut[t]\\
+& 3     & 0.84  & 0.64 \\
+ & 4     & 0.72  & 0.62 \\
+ & 5     & 0.75  & 0.66 \\
+ & 6     & 0.63  & 0.59 \\
+ & 7     & 0.56  & 0.55 \bigstrut[b]\\
+\hline
+\multirow{6}{1.5cm}{Class $-$ Features} & 8     & 0.53  & 0.82 \bigstrut[t]\\
+& 9     & 0.65  & 0.84 \\
+ & 10    & 0.61  & 0.7 \\
+ & 11    & 0.66  & 0.75 \\
+ & 12    & 0.6   & 0.64 \\
+ & 13    & 0.54  & 0.55 \\
+ \hline
+Noise Features & 14-30 & 0.5   & 0.5 \bigstrut[b]\\
+\hline
+\end{tabular}%
   \label{tab:asymmetricfeatures1}%
 \end{table}%
 
-We performed 10 replicates and averaged the ranks of the class + variables, class - variables, and noise variables. We run the Asymmetric Random Forest for each of these draws using various combinations of the Gini, $\rho$, and number of trees in the forest. The Wilcoxon-Mann-Whitney test is used to validate if the class - variables are being selected over the class + variables and the noise variables. The results are shown in table \ref{tab:asymmetricfeaturesresults}.
+We performed 10 replicates and averaged the ranks of the class $+$ variables, class $-$ variables, and noise variables. The most relevant variable is given the rank of 1 and the least is given the rank of 30. We run the Asymmetric Random Forest for each of these draws using various combinations of the $G(\cdot)$, $\rho$, and number of trees in the forest. Table \ref{varrank1} shows the average ranks of the 10 replicates for each class $+$ feature. Ideally, we should find all class $+$ features given a low rank on average. Feature 1, a feature that has yields high precision for class $+$ and $-$, is consistently the ranked first for almost all the simulations. Feature 2 failed to get picked up by the regular RF algorithm but when applied to the various modifications for asymmetry was able to obtained a low rank. Overall, the table show that the modifications to the RF algorithm causes the features are able to predict class $+$ to be ranked low. The Wilcoxon-Mann-Whitney test is used to test the significance of the class $-$ variables are being selected over the class $+$ variables and the noise variables. The results are shown in table \ref{tab:asymmetricfeaturesresults}. Based on $alpha=0.05$, with the exception of the regular random forest variable selection, we find that the average rank of class $+$ features are lower than that of the noise variables. $\rho_{lg}$ with Gini is found not to be effective in picking the class + asymmetric variables. Combining the use of $\rho_{lg}$ with either aG1 or aG2 results in the ability to pick class $+$ features over class $-$ features. aG1 with the regular $\rho$ does not yield an asymmetric result. Combining it with $\rho_{lg}$ or $\rho_{bin}$ results in significant lower ranks for the class $-$ features over the class $+$ features. When applying aG2 or $\rho_{bin}$, we see significant lower ranks for class $-$ features for all combinations. This shows the robustness of both these modifications. 
+
+\begin{table}%[htbp]
+  \centering
+  \caption{Average ranks of class $+$ variables from 10 replicates. The rank is out of 30 where the lower the rank the more important the variable is.}
+
+\begin{tabular}{rrrrrrrrrr}
+\hline
+$G(\cdot)$ & $\rho$ & No. of Trees & \multicolumn{7}{c}{Feature}\\
+ &  &  &  1 &  2 &  3 &  4 &  5 &  6 &  7 \bigstrut\\
+\hline
+G     & $\rho$ & 50    & 1.0   & 29.4  & 15.0  & 17.6  & 4.2   & 13.0  & 16.4 \bigstrut[t]\\
+G     & $\rho$ & 100   & 1.0   & 29.5  & 6.2   & 18.2  & 5.0   & 16.4  & 17.6 \\
+G     & $\rho$ & 200   & 1.0   & 29.5  & 6.5   & 19.8  & 5.0   & 20.1  & 20.6 \bigstrut[b]\\
+\hline
+G     & $\rho_{lg}$ & 50    & 1.0   & 25.3  & 5.5   & 15.5  & 3.7   & 18.5  & 22.5 \bigstrut[t]\\
+G     & $\rho_{lg}$ & 100   & 1.0   & 26.6  & 3.1   & 13.3  & 3.4   & 11.4  & 15.5 \\
+G     & $\rho_{lg}$ & 200   & 1.0   & 24.6  & 4.7   & 9.4   & 2.8   & 13.9  & 22.3 \bigstrut[b]\\
+\hline
+G     & $\rho_{bin}$ & 50    & 1.0   & 4.7   & 2.9   & 9.5   & 8.0   & 15.4  & 20.2 \bigstrut[t]\\
+G     & $\rho_{bin}$ & 100   & 1.0   & 4.0   & 2.2   & 5.7   & 4.1   & 17.8  & 22.3 \\
+G     & $\rho_{bin}$ & 200   & 1.0   & 4.1   & 2.4   & 6.3   & 3.3   & 16.2  & 15.3 \bigstrut[b]\\
+\hline
+aG1   & $\rho$ & 50    & 1.0   & 29.5  & 7.2   & 12.0  & 8.2   & 17.4  & 18.0 \bigstrut[t]\\
+aG1   & $\rho$ & 100   & 1.0   & 29.4  & 3.0   & 19.0  & 4.3   & 13.6  & 16.0 \\
+aG1   & $\rho$ & 200   & 1.0   & 29.2  & 4.6   & 16.1  & 5.5   & 15.1  & 17.4 \bigstrut[b]\\
+\hline
+aG1   & $\rho_{lg}$ & 50    & 1.0   & 2.2   & 4.2   & 14.6  & 9.2   & 19.4  & 21.7 \bigstrut[t]\\
+aG1   & $\rho_{lg}$ & 100   & 1.0   & 2.0   & 4.3   & 16.7  & 5.7   & 18.2  & 19.9 \\
+aG1   & $\rho_{lg}$ & 200   & 1.0   & 2.7   & 3.8   & 13.4  & 5.1   & 15.9  & 21.9 \bigstrut[b]\\
+\hline
+aG1   & $\rho_{bin}$ & 50    & 1.0   & 3.4   & 5.1   & 17.6  & 10.6  & 22.3  & 19.3 \bigstrut[t]\\
+aG1   & $\rho_{bin}$ & 100   & 1.0   & 2.1   & 4.3   & 16.9  & 6.4   & 23.4  & 16.1 \\
+aG1   & $\rho_{bin}$ & 200   & 1.0   & 2.0   & 3.1   & 19.5  & 9.7   & 27.0  & 19.1 \bigstrut[b]\\
+\hline
+aG2   & $\rho$ & 50    & 1.0   & 9.8   & 2.5   & 5.2   & 3.9   & 7.7   & 17.9 \bigstrut[t]\\
+aG2   & $\rho$ & 100   & 1.0   & 9.3   & 2.0   & 4.2   & 3.5   & 9.0   & 15.3 \\
+aG2   & $\rho$ & 200   & 1.0   & 11.1  & 2.1   & 4.5   & 3.2   & 7.7   & 16.1 \bigstrut[b]\\
+\hline
+aG2   & $\rho_{lg}$ & 50    & 1.0   & 2.9   & 2.4   & 7.1   & 5.0   & 11.3  & 18.8 \bigstrut[t]\\
+aG2   & $\rho_{lg}$ & 100   & 1.0   & 2.4   & 2.7   & 6.3   & 4.1   & 11.2  & 16.0 \\
+aG2   & $\rho_{lg}$ & 200   & 1.0   & 2.2   & 2.8   & 5.8   & 4.8   & 9.9   & 18.2 \bigstrut[b]\\
+\hline
+aG2   & $\rho_{bin}$ & 50    & 1.6   & 1.5   & 3.1   & 8.3   & 6.8   & 14.7  & 16.3 \bigstrut[t]\\
+aG2   & $\rho_{bin}$ & 100   & 1.8   & 1.2   & 3.3   & 5.3   & 5.9   & 8.9   & 15.4 \\
+aG2   & $\rho_{bin}$ & 200   & 2.1   & 1.1   & 3.0   & 4.7   & 5.9   & 9.7   & 12.9 \bigstrut[b]\\
+\hline
+\end{tabular}%
+\label{varrank1}%
+\end{table}%
+
+
+
 
 
 % Table generated by Excel2LaTeX from sheet 'Sheet2'
 
 \begin{table}%[htbp]
   \centering
-  \caption{Results from simulated asymmetric variables. Average feature rank is the average rank of class + asymmetric features. Difference between complement features is the difference of the average rank of class + features from class - features. Diff between noise features is the difference of the average rank of class + features from the noise features. the asterisks indicates the difference is significant at $\alpha=0.05$ }
+  \caption{Results from simulated asymmetric variables. Average feature rank is the average rank of class + asymmetric features. Diff between complement features is the difference of the average rank of class + features from class - features. Diff between noise features is the difference of the average rank of class + features from the noise features. the asterisks indicates the difference is significant at $\alpha=0.05$ }
 \begin{tabular}{rrrp{2.5cm}p{2.5cm}p{2.5cm}}
 \hline
-Gini Type & P Type & No. of Trees & Average Feature Rank & Diff between Complement Features & Diff between Noise Features \bigstrut\\
+$G(\cdot)$ & $\rho$ & No. of Trees & Average Feature Rank & Diff between Complement Features & Diff between Noise Features \bigstrut\\
 \hline
 \renewcommand{\arraystretch}{.5}
+G     & $\rho$ & 50    & 15.93 & -0.42 & 0.26 \bigstrut[t]\\
+G     & $\rho$ & 100   & 15.48 & -1.4  & 1.38 \\
+G     & $\rho$ & 200   & 16.92 & -3.08 & -0.48 \bigstrut[b]\\
+\hline
+G     & $\rho_{lg}$ & 50    & 15.17 & -2.07 & 2.15* \bigstrut[t]\\
+G     & $\rho_{lg}$ & 100   & 12.22 & -0.08 & 6.48* \\
+G     & $\rho_{lg}$ & 200   & 12.95 & -1.45 & 5.71* \bigstrut[b]\\
+\hline
+G     & $\rho_{bin}$ & 50    & 10.12 & 9.53* & 6.67* \bigstrut[t]\\
+G     & $\rho_{bin}$ & 100   & 9.35  & 10.12* & 7.77* \\
+G     & $\rho_{bin}$ & 200   & 7.93  & 12.75* & 9.26* \bigstrut[b]\\
+\hline
 aG1   & $\rho$ & 50    & 15.38 & 0.08  & 1.02 \bigstrut[t]\\
 aG1   & $\rho$ & 100   & 14.22 & -0.92 & 3.37* \\
-aG1   & $\rho$ & 200   & 14.65 & -2.33 & 3.13* \\
-aG1   & $\rho_{bin}$ & 50    & 11.88 & 1.48* & 6.5* \\
-aG1   & $\rho_{bin}$ & 100   & 11.13 & 1.85* & 7.65* \\
-aG1   & $\rho_{bin}$ & 200   & 10.47 & 2.12* & 8.69* \\
-aG1   & $\rho_{sqrt}$ & 50    & 13.05 & 4.35* & 3.5* \\
-aG1   & $\rho_{sqrt}$ & 100   & 11.53 & 6.67* & 5.27* \\
-aG1   & $\rho_{sqrt}$ & 200   & 13.40 & 4.77* & 2.75* \\
-aG2   & $\rho$ & 50    & 7.83  & 7.47* & 11.3* \\
+aG1   & $\rho$ & 200   & 14.65 & -2.33 & 3.13* \bigstrut[b]\\
+\hline
+aG1   & $\rho_{lg}$ & 50    & 11.88 & 1.48* & 6.5* \bigstrut[t]\\
+aG1   & $\rho_{lg}$ & 100   & 11.13 & 1.85* & 7.65* \\
+aG1   & $\rho_{lg}$ & 200   & 10.47 & 2.12* & 8.69* \bigstrut[b]\\
+\hline
+aG1   & $\rho_{bin}$ & 50    & 13.05 & 4.35* & 3.5* \bigstrut[t]\\
+aG1   & $\rho_{bin}$ & 100   & 11.53 & 6.67* & 5.27* \\
+aG1   & $\rho_{bin}$ & 200   & 13.40 & 4.77* & 2.75* \bigstrut[b]\\
+\hline
+aG2   & $\rho$ & 50    & 7.83  & 7.47* & 11.3* \bigstrut[t]\\
 aG2   & $\rho$ & 100   & 7.22  & 7.45* & 12.35* \\
-aG2   & $\rho$ & 200   & 7.45  & 6.53* & 12.28* \\
-aG2   & $\rho_{bin}$ & 50    & 7.92  & 3.55* & 12.54* \\
-aG2   & $\rho_{bin}$ & 100   & 7.12  & 4.12* & 13.7* \\
-aG2   & $\rho_{bin}$ & 200   & 7.28  & 4.62* & 13.24* \\
-aG2   & $\rho_{sqrt}$ & 50    & 8.60  & 3.73* & 11.01* \\
-aG2   & $\rho_{sqrt}$ & 100   & 6.67  & 5.72* & 13.86* \\
-aG2   & $\rho_{sqrt}$ & 200   & 6.22  & 5.13* & 14.81* \\
-G     & $\rho$ & 50    & 15.93 & -0.42 & 0.26 \\
-G     & $\rho$ & 100   & 15.48 & -1.4  & 1.38 \\
-G     & $\rho$ & 200   & 16.92 & -3.08 & -0.48 \\
-G     & $\rho_{bin}$ & 50    & 15.17 & -2.07 & 2.15* \\
-G     & $\rho_{bin}$ & 100   & 12.22 & -0.08 & 6.48* \\
-G     & $\rho_{bin}$ & 200   & 12.95 & -1.45 & 5.71* \\
-G     & $\rho_{sqrt}$ & 50    & 10.12 & 9.53* & 6.67* \\
-G     & $\rho_{sqrt}$ & 100   & 9.35  & 10.12* & 7.77* \\
-G     & $\rho_{sqrt}$ & 200   & 7.93  & 12.75* & 9.26* \bigstrut[b]\\
+aG2   & $\rho$ & 200   & 7.45  & 6.53* & 12.28* \bigstrut[b]\\
+\hline
+aG2   & $\rho_{lg}$ & 50    & 7.92  & 3.55* & 12.54* \bigstrut[t]\\
+aG2   & $\rho_{lg}$ & 100   & 7.12  & 4.12* & 13.7* \\
+aG2   & $\rho_{lg}$ & 200   & 7.28  & 4.62* & 13.24* \bigstrut[b]\\
+\hline
+aG2   & $\rho_{bin}$ & 50    & 8.60  & 3.73* & 11.01* \bigstrut[t]\\
+aG2   & $\rho_{bin}$ & 100   & 6.67  & 5.72* & 13.86* \\
+aG2   & $\rho_{bin}$ & 200   & 6.22  & 5.13* & 14.81* \bigstrut[b]\\
 \hline
 \end{tabular}%
 \label{tab:asymmetricfeaturesresults}%
@@ -267,77 +330,113 @@ G     & $\rho_{sqrt}$ & 200   & 7.93  & 12.75* & 9.26* \bigstrut[b]\\
 
 
 \subsection{Asymmetric Forest on Simulated Asymmetric features that interacts}
-Asymmetric precision in predictors can happen when there is interaction between multiple predictors. In the following experiment, we deconstructed asymmetric predictors that has high prediction for class + into 2 new predictors that have a predicision of 50\% for class + and class -. The deconstruction for each predictor is done by algorithm \ref{algo: PredictorDecompose}. We used two features that have high precision in class + and two features that have high precision in class - and decomposed them to eight features that are individually unpredictive. We also added four noise variables to the data for simulation. The asymmetric forest algorithm with various Gini's and $\rho$s were ran. The results are as Table \ref{tab:asymmetricfeaturesresults2}. 
-\begin{algorithm}
-Let variable $x_c\in X$ where $X$ is a binary variable be the value that results in the highest precision for class $c$.\\
-To decompose $x$ into $z_a$ and $z_b$
-\If{$x==x_c$}{
-	Generate random number $R$
-	\If{$R<.5$}{
-		$z_a=1$\\
-		$z_b=0$
-	}
-	\Else{
-		$z_a=0$\\
-		$z_b=1$
-	}
-}
-\Else{
-	Generate random number $R$
-	\If{$R<.5$}{
-		$z_a=1$\\
-		$z_b=1$
-	}
-	\Else{
-		$z_a=0$\\
-		$z_b=0$
-	}
-}
+Asymmetric precision in predictors can happen when there is interaction between multiple predictors. In the following experiment, we decompose variables that have information about the response into two separate noise variables. The decomposition for each predictor is done as follows. Let $x_i \in (0,1)$ be a binary variable. To decompose $x_i$ into $z_{ai}$ and $z_{bi}$, if $x_i=1$, then we sample $z_{ai}=1$ and $z_{bi}=0$ or $z_{ai}=0$ and $z_{bi}=1$ with equal probability. if $x_i=0$, then we sample $z_{ai}=1$ and $z_{bi}=1$ or $z_{ai}=0$ and $z_{bi}=0$ with equal probability. Now the resulting $z_{ai}$ and $z_{bi}$ are noise variables that do not contain any information about the response by themselves.
 
-\caption{Decomposing predictors algorithm}\label{algo: PredictorDecompose}
-\end{algorithm}
+ We decomposed Feature 1 in Table \ref{tab:asymmetricfeatures1} to two different features. We also decomposed two features (Feature 2 and 3 in Table \ref{tab:asymmetricfeatures1}) that have high precision in class + and two features that have high precision in class - (Feature 8 and 9 in Table \ref{tab:asymmetricfeatures1}) to eight features that are individually unpredictive. Finally, we added four noise variables to the data for simulation, which resulted in a data set of 14 predictors in total. The asymmetric forest algorithm with various $G(\cdot)$ and $\rho$s were ran. Table \ref{varrank2} shows the average ranks of the decomposed variables. Having a low rank means that the model considers the variable important and thus we would like to see that all class $+$ features have a low rank on average. Feature 1a and 1b, which is the decomposition of Feature 1, is picked up by all the algorithms. The decomposed class  $+$ feature 2a and 2b failed to be picked up as top variables for the regular RF algorithm. aG2 with $\rho_{bin}$  at 200 trees was able to pick up all the class + features as all the class + feature average ranks were below 5. All the asymmetric feature selection models were able to pick up Feature 3a and 3b as they had these features below 5 on average at 200 trees. 
 
+ The results are as Table \ref{tab:asymmetricfeaturesresults2}. 
+
+
+\begin{table}%[htbp]
+  \centering
+  \caption{Average ranks of decomposed features from 10 replicates. The prefix of the decomposed feature is the label of the original feature. The rank is out of 14 where the lower the rank the more important the variable is.}
+% Table generated by Excel2LaTeX from sheet 'Sheet1'
+\begin{tabular}{rrrrrrrrr}
+\hline
+$G(\cdot)$ & $\rho$ & No. of Trees & \multicolumn{6}{c}{Decomposed Feature}\\
+ &  &  &  1a &  1b &  2a &  2b &  3a &  3b \bigstrut\\
+\hline
+Gini     & $\rho$ & 50    & 1.2   & 1.8   & 12.7  & 12.4  & 4.0   & 4.2 \bigstrut[t]\\
+Gini     & $\rho$ & 100   & 1.4   & 1.6   & 12.0  & 13.3  & 4.0   & 5.2 \\
+Gini  & $\rho$ & 200   & 1.4   & 1.6   & 13.0  & 12.9  & 4.9   & 4.9 \bigstrut[b]\\
+\hline
+Gini     & $\rho_{lg}$ & 50    & 1.3   & 1.7   & 12.1  & 11.1  & 4.1   & 5.3 \bigstrut[t]\\
+Gini     & $\rho_{lg}$ & 100   & 1.3   & 1.7   & 11.9  & 12.4  & 4.6   & 4.7 \\
+Gini     & $\rho_{lg}$ & 200   & 1.4   & 1.6   & 13.4  & 12.3  & 4.1   & 4.0 \bigstrut[b]\\
+\hline
+Gini     & $\rho_{bin}$ & 50    & 1.4   & 1.6   & 6.6   & 6.5   & 3.1   & 4.1 \bigstrut[t]\\
+Gini     & $\rho_{bin}$ & 100   & 1.4   & 1.6   & 5.5   & 6.9   & 3.5   & 3.5 \\
+Gini     & $\rho_{bin}$ & 200   & 1.6   & 1.4   & 5.4   & 5.9   & 3.7   & 3.3 \bigstrut[b]\\
+\hline
+aG1   & $\rho$ & 50    & 1.7   & 1.3   & 10.8  & 11.9  & 4.6   & 4.0 \bigstrut[t]\\
+aG1   & $\rho$ & 100   & 1.5   & 1.5   & 12.4  & 13.2  & 3.6   & 3.6 \\
+aG1   & $\rho$ & 200   & 1.8   & 1.2   & 12.5  & 13.1  & 3.6   & 4.0 \bigstrut[b]\\
+\hline
+aG1   & $\rho_{lg}$ & 50    & 1.3   & 1.7   & 8.7   & 8.4   & 3.3   & 3.8 \bigstrut[t]\\
+aG1   & $\rho_{lg}$ & 100   & 1.5   & 1.5   & 8.7   & 9.8   & 3.6   & 3.7 \\
+aG1   & $\rho_{lg}$ & 200   & 1.3   & 1.7   & 9.7   & 8.9   & 3.3   & 3.7 \bigstrut[b]\\
+\hline
+aG1   & $\rho_{bin}$ & 50    & 1.4   & 1.9   & 7.3   & 6.0   & 4.6   & 3.0 \bigstrut[t]\\
+aG1   & $\rho_{bin}$ & 100   & 1.2   & 1.9   & 6.7   & 5.2   & 3.7   & 3.5 \\
+aG1   & $\rho_{bin}$ & 200   & 1.6   & 1.6   & 5.6   & 6.6   & 3.2   & 3.6 \bigstrut[b]\\
+\hline
+aG2   & $\rho$ & 50    & 2.6   & 4.4   & 9.9   & 7.8   & 4.1   & 4.0 \bigstrut[t]\\
+aG2   & $\rho$ & 100   & 3.0   & 2.2   & 9.2   & 9.3   & 3.7   & 5.1 \\
+aG2   & $\rho$ & 200   & 1.8   & 2.0   & 8.4   & 7.8   & 4.0   & 3.4 \bigstrut[b]\\
+\hline
+aG2   & $\rho_{lg}$ & 50    & 2.0   & 1.7   & 7.6   & 9.5   & 5.7   & 5.8 \bigstrut[t]\\
+aG2   & $\rho_{lg}$ & 100   & 1.6   & 1.7   & 7.3   & 6.6   & 4.5   & 4.4 \\
+aG2   & $\rho_{lg}$ & 200   & 1.9   & 1.6   & 8.7   & 8.0   & 5.0   & 4.4 \bigstrut[b]\\
+\hline
+aG2   & $\rho_{bin}$ & 50    & 4.4   & 3.8   & 3.6   & 4.9   & 3.9   & 5.1 \bigstrut[t]\\
+aG2   & $\rho_{bin}$ & 100   & 3.1   & 4.6   & 5.4   & 4.2   & 6.4   & 6.3 \\
+aG2   & $\rho_{bin}$ & 200   & 4.2   & 4.8   & 4.0   & 3.4   & 4.7   & 4.8 \bigstrut[b]\\
+\hline
+\end{tabular}%
+
+\label{varrank2}%
+\end{table}%
 
 \begin{table}%[htbp]
   \centering
   \caption{Results from simulated asymmetric variables with interactions. Average feature rank is the average rank of class + asymmetric features. Difference between complement features is the difference of the average rank of class + features from class - features. Diff between noise features is the difference of the average rank of class + features from the noise features. the asterisks indicates the difference is significant at $\alpha=0.05$ }
 \begin{tabular}{rrrp{2.5cm}p{2.5cm}p{2.5cm}}
 \hline
-Gini Type & P Type & No. of Trees & Average Feature Rank & Diff between Complement Features & Diff between Noise Features \bigstrut\\
+$G(\cdot)$ & $\rho$ & No. of Trees & Average Feature Rank & Diff between Complement Features & Diff between Noise Features \bigstrut\\
 \hline
 \renewcommand{\arraystretch}{.5}
+G     & $\rho$ & 50    & 8.33  & 0.53* & 0 \bigstrut[t]\\
+G     & $\rho$ & 100   & 8.63  & -0.2  & -0.18 \\
+G     & $\rho$ & 200   & 8.93  & -0.73 & -0.55 \bigstrut[b]\\
+\hline
+G     & $\rho_{lg}$ & 50    & 8.15  & -0.18 & 1.23* \bigstrut[t]\\
+G     & $\rho_{lg}$ & 100   & 8.40  & -0.5  & 0.8 \\
+G     & $\rho_{lg}$ & 200   & 8.45  & -0.48 & 0.63* \bigstrut[b]\\
+\hline
+G     & $\rho_{bin}$ & 50    & 5.08  & 4.73* & 5.55* \bigstrut[t]\\
+G     & $\rho_{bin}$ & 100   & 4.85  & 5.23* & 5.73* \\
+G     & $\rho_{bin}$ & 200   & 4.58  & 5.53* & 6.25* \bigstrut[b]\\
+\hline
 aG1   & $\rho$ & 50    & 7.83  & 1.2*  & 0.83* \bigstrut[t]\\
 aG1   & $\rho$ & 100   & 8.20  & 0.4   & 0.5* \\
-aG1   & $\rho$ & 200   & 8.30  & 0.45* & 0.15 \\
-aG1   & $\rho_{bin}$ & 50    & 6.05  & 3.95* & 3.4* \\
-aG1   & $\rho_{bin}$ & 100   & 6.45  & 3.43* & 2.73* \\
-aG1   & $\rho_{bin}$ & 200   & 6.40  & 3.35* & 2.95* \\
-aG1   & $\rho_{sqrt}$ & 50    & 5.23  & 5.2*  & 4.55* \\
-aG1   & $\rho_{sqrt}$ & 100   & 4.78  & 6.18* & 4.98* \\
-aG1   & $\rho_{sqrt}$ & 200   & 4.75  & 6.08* & 5.13* \\
-aG2   & $\rho$ & 50    & 6.45  & 2.85* & 2.3* \\
+aG1   & $\rho$ & 200   & 8.30  & 0.45* & 0.15 \bigstrut[b]\\
+\hline
+aG1   & $\rho_{lg}$ & 50    & 6.05  & 3.95* & 3.4* \bigstrut[t]\\
+aG1   & $\rho_{lg}$ & 100   & 6.45  & 3.43* & 2.73* \\
+aG1   & $\rho_{lg}$ & 200   & 6.40  & 3.35* & 2.95* \bigstrut[b]\\
+\hline
+aG1   & $\rho_{bin}$ & 50    & 5.23  & 5.2*  & 4.55* \bigstrut[t]\\
+aG1   & $\rho_{bin}$ & 100   & 4.78  & 6.18* & 4.98* \\
+aG1   & $\rho_{bin}$ & 200   & 4.75  & 6.08* & 5.13* \bigstrut[b]\\
+\hline
+aG2   & $\rho$ & 50    & 6.45  & 2.85* & 2.3* \bigstrut[t]\\
 aG2   & $\rho$ & 100   & 6.83  & 2.8*  & 1.68* \\
-aG2   & $\rho$ & 200   & 5.90  & 3.88* & 3.73* \\
-aG2   & $\rho_{bin}$ & 50    & 7.15  & 0.65  & 3.23* \\
-aG2   & $\rho_{bin}$ & 100   & 5.70  & 2.83* & 5.5* \\
-aG2   & $\rho_{bin}$ & 200   & 6.53  & 1.15* & 4.65* \\
-aG2   & $\rho_{sqrt}$ & 50    & 4.38  & 3.78* & 7.25* \\
-aG2   & $\rho_{sqrt}$ & 100   & 5.65  & 2.58* & 4.4* \\
-aG2   & $\rho_{sqrt}$ & 200   & 4.23  & 4.25* & 6.92* \\
-G     & $\rho$ & 50    & 8.33  & 0.53* & 0 \\
-G     & $\rho$ & 100   & 8.63  & -0.2  & -0.18 \\
-G     & $\rho$ & 200   & 8.93  & -0.73 & -0.55 \\
-G     & $\rho_{bin}$ & 50    & 8.15  & -0.18 & 1.23* \\
-G     & $\rho_{bin}$ & 100   & 8.40  & -0.5  & 0.8 \\
-G     & $\rho_{bin}$ & 200   & 8.45  & -0.48 & 0.63* \\
-G     & $\rho_{sqrt}$ & 50    & 5.08  & 4.73* & 5.55* \\
-G     & $\rho_{sqrt}$ & 100   & 4.85  & 5.23* & 5.73* \\
-G     & $\rho_{sqrt}$ & 200   & 4.58  & 5.53* & 6.25* \bigstrut[b]\\
+aG2   & $\rho$ & 200   & 5.90  & 3.88* & 3.73* \bigstrut[b]\\
+\hline
+aG2   & $\rho_{lg}$ & 50    & 7.15  & 0.65  & 3.23* \bigstrut[t]\\
+aG2   & $\rho_{lg}$ & 100   & 5.70  & 2.83* & 5.5* \\
+aG2   & $\rho_{lg}$ & 200   & 6.53  & 1.15* & 4.65* \bigstrut[b]\\
+\hline
+aG2   & $\rho_{bin}$ & 50    & 4.38  & 3.78* & 7.25* \bigstrut[t]\\
+aG2   & $\rho_{bin}$ & 100   & 5.65  & 2.58* & 4.4* \\
+aG2   & $\rho_{bin}$ & 200   & 4.23  & 4.25* & 6.92* \bigstrut[b]\\
 \hline
 \end{tabular}%
+
 \label{tab:asymmetricfeaturesresults2}%
 \end{table}%
 
+Random forest variable selection was unable to obtain class $+$ features over class $-$ features, nor was it able to distinguish class $-$ features over the noise features. At 100 and 200 trees, aG1 and aG1 were able to pick class $-$ features over class $+$ features and the noise features, regardless of which $\rho$ was used. $\rho_{lg}$ was not able to pick class $-$ features when used with Gini. It is however able to do so with aG1 and aG2. The top performing algorithm with aG1 with  $\rho_{bin}$, which yielded the greatest difference between class $+$ and class $-$ variables. The experiment showed that an asymmetric variable selection random forest is useful in picking out asymmetric variables. 
 
 \subsection{Asymmetric features in Form 4 data}
 Public companies that trade in the United States must have its directors, officers, and sharesholders owning more than 10\% of the firm file with the United States Securities and Exchange Commission a statement of ownership anytime they conduct a transaction with a company's stock. The filing is done by the individual trading the security with the form 4 document and the filing is made available by the SEC on its website \citep{SECWebsite}. Based on the research done by \citet{Cicero09}, executive trade on privileged information and early exercise is correlated with the peak of a stock price run. However, late exercise does not correlate with the bottom of a stock price run. We picked 20 variables that are associated with executive stock trading and ran the asymmetric random forest algorithm. The description of the various variables are as of table \ref{needtable}. The results are as below.  
