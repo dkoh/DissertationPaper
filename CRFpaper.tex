@@ -1,0 +1,142 @@
+\documentclass[twoside,11pt]{article}
+\usepackage{sty_files/jmlr2e}
+\usepackage{amsmath,multirow,subfigure,bigstrut}
+\usepackage[ruled,vlined]{algorithm2e}	
+% Heading arguments are {volume}{year}{pages}{submitted}{published}{author-full-names}
+\jmlrheading{1}{2012}{1-48}{4/00}{10/00}{George Runger and Derek Koh}
+
+% Short headings should be running head and authors last names
+\ShortHeadings{Conditional Random Forest}{Koh and Runger}
+\firstpageno{1}
+
+\title{Conditional Random Forest}
+
+\author{\name Derek Koh \email Derek.Koh@asu.edu \\
+       \addr Sch Compt Infor \& Dec Sys Engr\\
+       Arizona State University\\
+       Tempe, AZ 85281, USA
+       \AND
+\name George Runger \email George.Runger@asu.edu\\
+       \addr Sch Compt Infor \& Dec Sys Engr\\
+       Arizona State University\\
+       Tempe, AZ 85281, USA
+}
+
+\editor{Leslie Pack Kaelbling}
+
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Organization of data is commonly done in machine learning so that information can be better understood. This can be done by either delinating subspaces by clustering or grouping the observations by matching. The clustering of data can reduce variance in statistical estimation and provide a better understanding of the data. For instance in the finance field it is well known that there are firms that behave similarly and clustering such firms together results in better analysis \citep{Daniel97} \citep{Faulkender10}\citep{Bizjak08}\citep{Marsili02}. Matching specifically links observations in the data sets together instead of specifying spaces. A 1:1 matched study is commonly called a case-control study where one of the matched data is labeled as the case and the other is labeled as control. Matched data is often used in clinical studies \citep{Berg10}\citep{Austin08}. For instance, data of patients will be collected before and after a drug is administered for analysis to test the effectiveness of the drug. Using these methods to organize data, we can then use machine learning tools to gather information from the data. This study presents a way to organize data via random forest so that we can better understand the non-linear effects of varibles.
+
+\section{Motivation}
+Consider Figure \label{Fig:stratumpic1a} where there does not seem to be any relationship between the clear and colored dots. Garnering information from such data will prove to be difficult, although not impossible. If we are able to find a link between each clear and colored dot, we would obtain Figure \label{Fig:stratumpic1b}. There seems to be some coherence within the figure where we see clusters of pairs. Finally we can partition the spaces as shown in  Figure \label{Fig:stratumpic1c}. Now we can gather clear information about the data where we see that for each of the subspace, the relatioship between the clear and colored dots are linear either in the horizonal, or vertical axis. By matching and using stratums we provide context to the seemingly random data and are able to better understand it.  
+
+\begin{figure}[htp]
+  \begin{center}
+    \subfigure[Quantile SVM $\rho_1$=0.5]{\label{Fig:stratumpic1a}\includegraphics[scale=0.3]{img/CRFimages/stratumpic1a}} \\
+    \subfigure[Quantile SVM $\rho_1$=0.4]{\label{Fig:stratumpic1b}\includegraphics[scale=0.3]{img/CRFimages/stratumpic1b}}
+    \subfigure[Quantile SVM $\rho_1$=0.6]{\label{Fig:stratumpic1c}\includegraphics[scale=0.3]{img/CRFimages/stratumpic1c}} \\
+  \end{center}
+  \caption{Figure \ref{Fig:stratumpic1a} shows a case and control data set without any clear relationship. Figure \ref{Fig:stratumpic1b} shows the data after the case and control are matched. Figure \ref{Fig:stratumpic1c} shows the data after stratums are found. The relationship between the case and control can now be seen as linear within the stratums}
+  \label{fig:stratumpic1}
+\end{figure}
+
+\section{Stratums on matched data}
+The methodology employed to get Figure \ref{Fig:stratumpic1c} consists of 2 parts: matching and stratifying. With a 1:1 matching, a case observation is matched to the control observation. This is typically done via domain knowledge on what the pairs are. With matched studies it may also be necessary to use blocking if there is domain knowledge of certain variables contributing to noise. For instance, in a clinical trial, blocking by age and gender may be appropriate to reduce variability \citep{Crespo11}. Similar to blocking, stratifying of observations can be used to reduce variability. The difference between blocking and stratification is minimal in that blocking is used in experiments whereas stratification is used when sampling. In \citet{Hosmer00}, such problems of stratified matched data was handled by using conditional logistic regression (CLR). CLR provides information on the covariates and an understanding of the effect such covariates have.  
+
+\section{Conditional Logistic Regression}\label{sec:clr}
+For the problem with binary response, the response is considered a Bernoulli random variable $y$. When $y=1$, it is called case and when $y=0$ it is called control. Denote 
+
+ \begin{equation} \label{eqn:probx}
+E(y)= P(y=1|\mathbf{x})=P(\mathbf{x}), i =1,2,...,n
+\end{equation}
+
+where $\mathbf{x}$ is a vector of covariates. The logistic model is given by. 
+\begin{equation} \label{eqn:logisticfunction}
+P(\mathbf{x})= \frac{1}{1+e^{-\mathbf{\beta}'\mathbf{x}}}
+\end{equation}
+where $\mathbf{\beta}'=(\beta_1,\beta_2,...,\beta_p)$ are the vector of coefficients of covariates $x$. The logit model can be written as 
+
+\begin{equation} \label{eqn:logisticmodel}
+\begin{array}{cc}
+\log \left[ \frac{P(\mathbf{x})}{1-P(\mathbf{x})} \right]  &= g(\mathbf{x},\mathbf{\beta})\\
+&= \mathbf{\beta}'\mathbf{x}kj
+\end{array}
+\end{equation}
+
+For the case of stratified data conditional logistic regression is a more appropriate analysis than logistic regression because it accounts for the strata in the study within the analysis \citep{Jewell04}. Let there be $K$ strata with $n_k$ subjects in the $k^{th}$ stratum, where $k=1,2,...,K$. There are $n_{1k}$ case subjects, $n_{0k}$ control subjects, and $n_k=n_{1k}+n_{0k}$. The conditional logistic regression model is then 
+\begin{equation} \label{eqn:clrmodel}
+P(\mathbf{x})=\pi_k(\mathbf{x})= \frac{e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}{1+e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}
+\end{equation}
+where $\alpha_k$ is a stratification parameter that is enforced when $\mathbf{x}$ is in stratum $k$. Thus $\alpha_k$ provides a level change for each of the stratums. 
+
+\section{Non-linear Stratification}
+The stratification work done in section \ref{sec:clr} works well if the relationship between covariates and response is consistent throughout the stratums or $x_{0i} \propto x_{1i}, \forall i$. For datasets where this does not hold, a linear model such as conditional logistic regression may not yield the true relationships between the covariates and response. Accommodating a non-linear stratum model requires the use of non-linear statistical algorithms to discover clusters of data that are similar. Once such clusters are discovered, we will then be able to discover the true relationships between the covariates and response. 
+
+\section{Conditional Random Forest}
+The proposed algorithm of conditional random forest, CRF, uses a random forest to discover clusters where the relationship between the case and control are linear and then conduct conditional linear regression on the nodes. CRF assumes the following relationship
+\begin{equation}
+	P(y=1|\mathbf{x} \in R_m) = \frac{e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}{1+e^{\alpha_k + \mathbf{\beta}'\mathbf{x}}}
+\end{equation}
+
+where $R_m$ is a subspace of $\mathbb{R}$. 
+
+\subsection{Grow the trees in the Random Forest}
+Let $\mathbf{x_i}=[\mathbf{x}_{0i},\mathbf{x}_{1i}]$ where $\mathbf{x}_{0i}$ is a vector of control predictors and $\mathbf{x}_{1i}$ is the vector of case predictors. A random forest is formed by growing $K$ individual trees without pruning. The tree growing algorithm, however, is modified such that it can accommodate matched data. Like the regular random forest algorithm, for each node, a random subset of covariates $p\in P$ is used to find the optimal split. A modification is made to the response when finding the purity by conditioning on the variable that the purity is based on. The response variable is set to 1 if $x_{1i} \geq x_{0i}$ and 0 if $x_{1i} < x_{0i}$. The best split based on this ad hoc response variable is then chosen. 
+
+\subsection{Forming a similarity matrix}
+After the trees of the forest are grown, a similarity matrix is formed by running all the observations down each of the trees and noting the leaf node that the observation falls into. The similarity matrix $\mathbf{A}$ is then created as follows
+\begin{equation}
+	A_{ij}=\displaystyle\sum_m^M I(\mathbf{x}_i,\mathbf{x}_j \in R_m)
+\end{equation}
+where $I(\mathbf{x}_i,\mathbf{x}_j \in R_m)$ is 1 when $\mathbf{x}_i$ and $\mathbf{x}_j$ are in region $R_m$ and 0 otherwise. Thus the greater the number, the more similar the observations are. 
+
+\subsection{Clustering the data and Conditional Logistic Regression}
+With the similarity matrix, we are then able to cluster the data. The clusters are achieved by hierarchical clustering \citep{Johnson67}. As we do not have any priors to the number of clusters there should be, we will iterate the experiments using different number of clusters. Finally conditional logistic regression is performed on each of the clusters.
+
+\subsection{Quantifying the results}
+The objective of this modeling process is to build a model that is more representative of the underlying nature of the data as oppose to just using conditional logistic regression and assuming that the relationship is linear. To assess model fit, the results can be quantified by comparing the deviance of the conditional random forest model over that of an ordinary conditional logistic regression. Deviance is similar to the sum of squares residual in a regular regression model \citep{pdSAS99}. The smaller the deviance, the better the fit. Thus we are able to do comparison based on the fit of the data between the conditional random forest and an ordinary conditional logistic regression. To account for the model complexity, we used AIC to compare CLR to CRF. AIC is deviance controlled by the number of parameters. By using AIC, we are able to account for the number of parameters and attain a fair comparison between CLR and CRF. 
+
+\section{Experiments}
+We simulated two sets of 1000 observation of bi-variate data. The first set is the vanilla data set where the covariates have linear effect over the entire covariate space. In the second set, which we termed the non-linear dataset, the covariates have linear effects on different subspaces within the bivariate space. We then applied CLR and CRF on both data sets and guaged the performance. Table \ref{tab:vanilladata} shows the results of CLR and CRF on the vanilla data. The AIC and deviance for CLR is lower than that of just using a regular CLR. Table \ref{tab:nonlineardata} shows the results for non-linear dataset. In this dataset, a reduction in both AIC and deviance can also be seen when CLR and more trees were used.  
+
+% Table generated by Excel2LaTeX from sheet 'Sheet1'
+\begin{table}[htbp]
+  \centering
+  \caption{Linear Data}
+    \begin{tabular}{rrr}
+    \hline
+          & AIC   & Deviance \bigstrut\\
+    \hline
+    CLR   & 208.5239 & 204.5239 \bigstrut[t]\\
+    Forest CLR 10 nodes  & 205.4773 & 165.4773 \\
+    Forest CLR 100 nodes  & 203.9112 & 163.9112 \\
+    Forest CLR 500 nodes  & 186.2416 & 146.2416 \bigstrut[b]\\
+    \hline
+    \end{tabular}%
+  \label{tab:vanilladata}%
+\end{table}%
+
+% Table generated by Excel2LaTeX from sheet 'Sheet1'
+\begin{table}[htbp]
+  \centering
+  \caption{Non-linear Data}
+    \begin{tabular}{rrr}
+    \hline
+          & AIC   & Deviance \bigstrut\\
+    \hline
+    CLR   & 695.1713 & 691.1713 \bigstrut[t]\\
+    Forest CLR 10 nodes  & 689.019 & 649.019 \\
+    Forest CLR 100 nodes  & 656.9837 & 616.9837 \\
+    Forest CLR 500 nodes  & 497.8368 & 457.8368 \bigstrut[b]\\
+    \hline
+    \end{tabular}%s
+  \label{tab:nonlineardata}%
+\end{table}%
+
+
+\bibliography{bibliography}
+\end{document}
